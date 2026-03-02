@@ -14,7 +14,43 @@ import {
   Receipt,
   Camera,
   Loader2,
+  CheckCircle2,
 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// --- FRAMER MOTION VARIANTS ---
+const pageVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+      type: 'spring',
+      damping: 20,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 300, damping: 24 },
+  },
+};
+
+const bottomSheetVariants = {
+  hidden: { y: '100%', opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', damping: 25, stiffness: 200 },
+  },
+  exit: { y: '100%', opacity: 0, transition: { duration: 0.2 } },
+};
 
 export default function FixedSplitBill() {
   const router = useRouter();
@@ -136,9 +172,17 @@ export default function FixedSplitBill() {
       )
       .join('\n');
     navigator.clipboard.writeText(
-      `📌 *Tagihan Nongkrong*\n\n${text}\n\nTotal: Rp ${Math.round(calculation.grandTotal).toLocaleString('id-ID')}\n\nBayar ya ygy! 🙏`,
+      `📌 *Tagihan Nongkrong*\n\n${text}\n\nTotal: Rp ${Math.round(calculation.grandTotal).toLocaleString('id-ID')}\n\nBayar ya ygy! `,
     );
-    alert('Berhasil disalin! 📋');
+
+    // Tampilkan feedback sementara di tombol
+    const btn = document.getElementById('copy-btn');
+    if (btn) {
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML =
+        '<svg class="w-5 h-5 text-income" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>';
+      setTimeout(() => (btn.innerHTML = originalHtml), 2000);
+    }
   };
 
   // --- AI SCAN LOGIC ---
@@ -151,20 +195,15 @@ export default function FixedSplitBill() {
     formData.append('image', file);
 
     try {
-      const res = await fetch('/api/scan', {
-        method: 'POST',
-        body: formData,
-      });
+      const res = await fetch('/api/scan', { method: 'POST', body: formData });
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error);
 
-      // Siapkan data AI ke dalam state konfirmasi (kasih ID sementara)
       const parsedItems = (data.items || []).map((item) => ({
         id: Date.now() + Math.random(),
         name: item.name,
         price: item.price,
-        assignedTo: [members[0]], // Otomatis assign ke member pertama
+        assignedTo: [members[0]],
       }));
 
       setScannedData({
@@ -172,13 +211,12 @@ export default function FixedSplitBill() {
         tax: data.tax || 0,
         service: data.service || 0,
       });
-
       setIsConfirmScanModalOpen(true);
     } catch (error) {
       alert('Gagal scan bon: ' + error.message);
     } finally {
       setIsScanning(false);
-      e.target.value = null; // Reset input file biar bisa upload foto yang sama
+      e.target.value = null;
     }
   };
 
@@ -199,121 +237,146 @@ export default function FixedSplitBill() {
   };
 
   const confirmScannedData = () => {
-    // 1. Masukkan item yang udah diedit ke keranjang utama
     setItems([...items, ...scannedData.items]);
-
-    // 2. Kalau AI nemu Tax/Service nominal, otomatis ganti config global ke Fix (Rp)
-    if (scannedData.tax > 0) {
+    if (scannedData.tax > 0)
       setTaxConfig({ mode: 'fix', value: scannedData.tax });
-    }
-    if (scannedData.service > 0) {
+    if (scannedData.service > 0)
       setServiceConfig({ mode: 'fix', value: scannedData.service });
-    }
-
     setIsConfirmScanModalOpen(false);
   };
 
-  // Helper UI buat Global Tax/Service
-  const GlobalExtraInput = ({ config, setConfig, label }) => (
-    <div className='bg-surface p-4 rounded-3xl border border-border shadow-sm transition-colors'>
-      <div className='flex justify-between items-center mb-2'>
+  // --- HELPER COMPONENT ---
+  const GlobalExtraInput = ({ config, setConfig, label, id }) => (
+    <div className='bg-surface/80 backdrop-blur-md p-4 rounded-[1.5rem] border border-border shadow-sm transition-colors flex flex-col justify-between'>
+      <div className='flex justify-between items-center mb-3'>
         <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest'>
           {label}
         </label>
-        <div className='flex bg-bg-hover p-1 rounded-full text-[9px] font-black border border-border'>
-          <button
-            onClick={() => setConfig({ ...config, mode: 'percent' })}
-            className={`px-2 py-1 rounded-full transition-colors ${config.mode === 'percent' ? 'bg-primary text-text-primary shadow-sm' : 'text-text-secondary'}`}
-          >
-            %
-          </button>
-          <button
-            onClick={() => setConfig({ ...config, mode: 'fix' })}
-            className={`px-2 py-1 rounded-full transition-colors ${config.mode === 'fix' ? 'bg-primary text-text-primary shadow-sm' : 'text-text-secondary'}`}
-          >
-            Rp
-          </button>
+
+        {/* Animated Toggle */}
+        <div className='flex bg-bg p-1 rounded-xl text-[10px] font-black border border-border relative'>
+          {['percent', 'fix'].map((mode) => (
+            <button
+              key={mode}
+              onClick={() => setConfig({ ...config, mode })}
+              className={`relative px-2 py-1 rounded-lg z-10 transition-colors ${config.mode === mode ? 'text-text-primary' : 'text-text-secondary'}`}
+            >
+              {mode === 'percent' ? '%' : 'Rp'}
+              {config.mode === mode && (
+                <motion.div
+                  layoutId={`toggle-${id}`}
+                  className='absolute inset-0 bg-surface rounded-lg -z-10 shadow-sm border border-border'
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                />
+              )}
+            </button>
+          ))}
         </div>
       </div>
-      <div className='flex items-center font-bold text-text-primary'>
-        <span className='text-xs mr-1 text-text-secondary'>
-          {config.mode === 'fix' ? 'Rp' : ''}
-        </span>
+
+      <div className='flex items-center font-black text-text-primary text-xl'>
+        {config.mode === 'fix' && (
+          <span className='text-sm mr-1.5 text-text-secondary'>Rp</span>
+        )}
         <input
           type='number'
           value={config.value}
           onChange={(e) =>
             setConfig({ ...config, value: Number(e.target.value) })
           }
-          className='w-full bg-transparent outline-none text-sm text-text-primary'
+          className='w-full bg-transparent outline-none text-text-primary'
         />
-        <span className='text-xs ml-1 text-text-secondary'>
-          {config.mode === 'percent' ? '%' : ''}
-        </span>
+        {config.mode === 'percent' && (
+          <span className='text-sm ml-1 text-text-secondary'>%</span>
+        )}
       </div>
     </div>
   );
 
   return (
-    <main className='min-h-screen bg-bg pb-40 relative transition-colors duration-300'>
-      <div className='absolute top-0 left-0 w-full h-48 bg-gradient-to-b from-surface/80 to-transparent z-0'></div>
+    <main className='min-h-screen bg-bg pb-28 relative transition-colors duration-300 font-sans'>
+      <div className='absolute top-0 left-0 w-full h-56 bg-primary/10 rounded-b-[4rem] z-0 blur-3xl opacity-50'></div>
 
-      <div className='relative z-10 p-6 max-w-md mx-auto'>
-        <header className='flex items-center gap-4 mb-8 pt-2'>
-          <button
-            onClick={() => router.back()}
-            className='w-10 h-10 bg-surface rounded-2xl flex items-center justify-center shadow-sm border border-border hover:bg-surface-hover transition-colors'
-          >
-            <ArrowLeft className='w-5 h-5 text-text-primary' />
-          </button>
-          <h1 className='text-xl font-black text-text-primary'>Split Bill </h1>
+      <motion.div
+        variants={pageVariants}
+        initial='hidden'
+        animate='visible'
+        className='relative z-10 p-6 max-w-md mx-auto'
+      >
+        {/* HEADER */}
+        <header className='flex items-center justify-between mb-8 pt-2'>
+          <div className='flex items-center gap-4'>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => router.back()}
+              className='w-11 h-11 bg-surface/80 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-sm border border-border transition-colors group'
+            >
+              <ArrowLeft className='w-5 h-5 text-text-primary group-hover:text-primary transition-colors' />
+            </motion.button>
+            <h1 className='text-xl font-black text-text-primary tracking-tight'>
+              Split Bill
+            </h1>
+          </div>
         </header>
 
         {/* --- SECTION 1: SQUAD --- */}
-        <section className='bg-surface p-5 rounded-3xl border border-border shadow-sm mb-6 flex items-center justify-between transition-colors'>
-          <div className='flex items-center gap-3'>
-            <div className='w-10 h-10 bg-bg-hover rounded-full flex items-center justify-center border border-border'>
-              <Users className='w-5 h-5 text-text-secondary' />
+        <motion.section
+          variants={itemVariants}
+          className='bg-surface/80 backdrop-blur-xl p-4 rounded-[1.5rem] border border-border shadow-sm mb-6 flex items-center justify-between transition-colors'
+        >
+          <div className='flex items-center gap-3 overflow-x-auto scrollbar-hide flex-1 mr-3'>
+            <div className='w-10 h-10 bg-primary/10 rounded-[1rem] flex items-center justify-center border border-primary/20 flex-shrink-0'>
+              <Users className='w-5 h-5 text-primary' />
             </div>
-            <div>
-              <h3 className='font-bold text-text-primary text-xs'>
-                Squad Nongkrong
-              </h3>
-              <p className='text-[10px] text-text-secondary'>
-                {members.length} Orang
-              </p>
+            <div className='flex gap-2'>
+              {members.map((m) => (
+                <div
+                  key={m}
+                  className='px-3 py-1.5 bg-bg border border-border rounded-xl text-[11px] font-bold text-text-primary whitespace-nowrap'
+                >
+                  {m}
+                </div>
+              ))}
             </div>
           </div>
           <button
             onClick={() => setIsAddMemberModalOpen(true)}
-            className='w-9 h-9 bg-primary text-text-primary rounded-xl flex items-center justify-center shadow-md hover:opacity-90 transition-opacity'
+            className='w-10 h-10 bg-bg border border-dashed border-text-secondary/50 text-text-primary rounded-[1rem] flex items-center justify-center flex-shrink-0 hover:bg-surface-hover hover:border-primary transition-all'
           >
             <UserPlus className='w-4 h-4' />
           </button>
-        </section>
+        </motion.section>
 
         {/* --- SECTION 2: GLOBAL TAX & SERVICE --- */}
-        <div className='grid grid-cols-2 gap-3 mb-6'>
+        <motion.div
+          variants={itemVariants}
+          className='grid grid-cols-2 gap-3 mb-6'
+        >
           <GlobalExtraInput
+            id='tax'
             label='Tax PPN'
             config={taxConfig}
             setConfig={setTaxConfig}
           />
           <GlobalExtraInput
+            id='srv'
             label='Service'
             config={serviceConfig}
             setConfig={setServiceConfig}
           />
-        </div>
+        </motion.div>
 
         {/* --- SECTION 3: MENU DETAIL --- */}
-        <section className='mb-8'>
+        <motion.section variants={itemVariants} className='mb-8'>
           <div className='flex justify-between items-end mb-4 px-1'>
-            <p className='text-[10px] font-black text-text-secondary uppercase tracking-widest'>
+            <h3 className='text-xs font-black text-text-secondary uppercase tracking-widest'>
               Pesanan ({items.length})
-            </p>
+            </h3>
+          </div>
 
-            {/* INPUT FILE & TOMBOL SCAN TERSEMBUNYI */}
+          {/* Action Row untuk tambah item (Gantiin FAB) */}
+          <div className='grid grid-cols-2 gap-3 mb-4'>
             <input
               type='file'
               accept='image/*'
@@ -321,71 +384,109 @@ export default function FixedSplitBill() {
               onChange={handleImageUpload}
               className='hidden'
             />
-            <button
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
               onClick={() => fileInputRef.current?.click()}
-              className='flex items-center gap-1 text-[10px] font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-xl border border-blue-100 shadow-sm hover:bg-blue-100 transition-all'
+              className='bg-investment/10 border border-investment/20 text-investment p-3 rounded-[1.2rem] font-bold text-xs flex items-center justify-center gap-2 hover:bg-investment/20 transition-colors shadow-sm'
             >
-              <Camera className='w-3 h-3' /> Auto Scan Bon
-            </button>
+              <Camera className='w-4 h-4' /> Auto Scan Bon
+            </motion.button>
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={() => setIsAddMenuModalOpen(true)}
+              className='bg-surface border border-border text-text-primary p-3 rounded-[1.2rem] font-bold text-xs flex items-center justify-center gap-2 hover:border-primary/50 transition-colors shadow-sm'
+            >
+              <Plus className='w-4 h-4 text-primary' /> Input Manual
+            </motion.button>
           </div>
 
-          <div className='space-y-3 max-h-[30vh] overflow-y-auto scrollbar-hide pb-4'>
-            {items.length === 0 ? (
-              <div className='text-center py-10 bg-surface/50 rounded-3xl border border-border border-dashed'>
-                <Utensils className='w-8 h-8 text-text-secondary mx-auto mb-2 opacity-30' />
-                <p className='text-[10px] font-bold text-text-secondary uppercase'>
-                  Belum ada menu di-input
-                </p>
-              </div>
-            ) : (
-              items.map((item) => (
-                <div
-                  key={item.id}
-                  className='bg-surface p-4 rounded-3xl border border-border shadow-sm group transition-colors'
+          <div className='space-y-3'>
+            <AnimatePresence mode='popLayout'>
+              {items.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className='text-center py-10 bg-surface/50 rounded-[2rem] border border-border border-dashed'
                 >
-                  <div className='flex justify-between items-start mb-3'>
-                    <p className='font-bold text-text-primary text-sm truncate mr-2'>
-                      {item.name}
-                    </p>
-                    <div className='flex items-center gap-3'>
-                      <p className='font-black text-sm text-text-primary'>
-                        Rp{item.price.toLocaleString('id-ID')}
+                  <Utensils className='w-10 h-10 text-text-secondary/30 mx-auto mb-3' />
+                  <p className='text-xs font-bold text-text-secondary'>
+                    Belum ada menu di-input
+                  </p>
+                </motion.div>
+              ) : (
+                items.map((item) => (
+                  <motion.div
+                    layout
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    key={item.id}
+                    className='bg-surface/80 backdrop-blur-md p-4 rounded-[1.5rem] border border-border shadow-sm group transition-colors'
+                  >
+                    <div className='flex justify-between items-start mb-4'>
+                      <p className='font-bold text-text-primary text-[15px] truncate mr-2 leading-tight'>
+                        {item.name}
                       </p>
-                      <button
-                        onClick={() =>
-                          setItems(items.filter((i) => i.id !== item.id))
-                        }
-                        className='text-expense/50 hover:text-expense transition-colors'
-                      >
-                        <Trash2 className='w-4 h-4' />
-                      </button>
+                      <div className='flex items-center gap-3'>
+                        <p className='font-black text-[15px] text-text-primary'>
+                          Rp{item.price.toLocaleString('id-ID')}
+                        </p>
+                        <button
+                          onClick={() =>
+                            setItems(items.filter((i) => i.id !== item.id))
+                          }
+                          className='text-expense/40 hover:text-expense transition-colors'
+                        >
+                          <Trash2 className='w-4 h-4' />
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className='flex flex-wrap gap-1.5'>
-                    {members.map((m) => (
-                      <button
-                        key={m}
-                        onClick={() => toggleAssignment(item.id, m)}
-                        className={`px-2.5 py-1 rounded-lg text-[9px] font-black transition-all ${item.assignedTo.includes(m) ? 'bg-primary text-text-primary shadow-sm' : 'bg-bg-hover text-text-secondary'}`}
-                      >
-                        {m}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ))
-            )}
+                    <div className='flex flex-wrap gap-1.5'>
+                      {members.map((m) => {
+                        const isSelected = item.assignedTo.includes(m);
+                        return (
+                          <button
+                            key={m}
+                            onClick={() => toggleAssignment(item.id, m)}
+                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-wider transition-all border ${isSelected ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-bg text-text-secondary border-border hover:border-text-secondary/50'}`}
+                          >
+                            {m}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </AnimatePresence>
           </div>
-        </section>
+        </motion.section>
 
-        {/* --- SECTION 4: DARK SUMMARY CARD --- */}
-        <section className='bg-surface p-8 rounded-[2.5rem] border border-border shadow-[0_8px_30px_rgb(0,0,0,0.04)] relative overflow-hidden transition-colors'>
-          <div className='flex justify-between items-start mb-6 relative z-10'>
+        {/* --- SECTION 4: SUMMARY CARD (RECEIPT STYLE) --- */}
+        <motion.section
+          variants={itemVariants}
+          className='bg-gradient-to-br from-surface to-surface/80 backdrop-blur-xl p-8 rounded-[2.5rem] border border-border shadow-[0_15px_40px_rgb(0,0,0,0.05)] relative overflow-hidden transition-colors'
+        >
+          {/* Jagged top border effect (CSS trick) */}
+          <div
+            className='absolute top-0 left-0 w-full h-2 bg-transparent'
+            style={{
+              backgroundImage:
+                'radial-gradient(circle at 10px 0, transparent 10px, var(--surface) 11px)',
+              backgroundSize: '20px 20px',
+              backgroundRepeat: 'repeat-x',
+            }}
+          ></div>
+
+          <div className='flex justify-between items-start mb-6 relative z-10 pt-2'>
             <div>
-              <h3 className='text-xs font-bold text-text-secondary uppercase tracking-widest mb-1'>
-                Hasil Patungan
+              <h3 className='text-xs font-black text-text-primary uppercase tracking-widest flex items-center gap-2 mb-1'>
+                <Receipt className='w-4 h-4 text-primary' /> Struk Patungan
               </h3>
-              <p className='text-[9px] text-text-secondary font-bold uppercase tracking-tighter'>
+              <p className='text-[10px] text-text-secondary font-bold uppercase tracking-tighter'>
                 Incl. Tax Rp
                 {Math.round(calculation.taxAmount).toLocaleString('id-ID')} &
                 Serv Rp
@@ -393,251 +494,334 @@ export default function FixedSplitBill() {
               </p>
             </div>
             <button
+              id='copy-btn'
               onClick={copySummary}
-              className='w-10 h-10 bg-bg-hover rounded-xl flex items-center justify-center text-text-primary hover:bg-border transition-colors'
+              className='w-10 h-10 bg-bg-hover rounded-[1rem] flex items-center justify-center text-text-primary hover:bg-primary/20 hover:text-primary transition-colors border border-border shadow-sm'
+              title='Salin rincian'
             >
-              <Copy className='w-5 h-5' />
+              <Copy className='w-4 h-4' />
             </button>
           </div>
 
-          <div className='space-y-3 mb-8 max-h-[25vh] overflow-y-auto scrollbar-hide relative z-10'>
+          <div className='space-y-3 mb-8 relative z-10'>
             {Object.entries(calculation.memberTotals).map(([name, total]) => (
               <div
                 key={name}
-                className='flex justify-between items-center bg-bg/50 p-4 rounded-2xl border border-border'
+                className='flex justify-between items-center border-b border-dashed border-border/60 pb-3'
               >
-                <span className='font-bold text-text-primary text-sm'>
+                <span className='font-bold text-text-secondary text-sm'>
                   {name}
                 </span>
-                <span className='font-black text-lg text-text-primary'>
-                  Rp{Math.round(total).toLocaleString('id-ID')}
+                <span className='font-black text-base text-text-primary'>
+                  Rp {Math.round(total).toLocaleString('id-ID')}
                 </span>
               </div>
             ))}
           </div>
 
-          <div className='border-t border-border pt-5 text-center relative z-10'>
-            <span className='text-[10px] font-black text-text-secondary uppercase block mb-1'>
+          <div className='bg-bg p-5 rounded-3xl text-center relative z-10 border border-border'>
+            <span className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
               Grand Total
             </span>
-            <span className='text-4xl font-black text-text-primary mb-2 inline-block'>
-              Rp{Math.round(calculation.grandTotal).toLocaleString('id-ID')}
+            <span className='text-4xl font-black text-text-primary tracking-tight'>
+              Rp {Math.round(calculation.grandTotal).toLocaleString('id-ID')}
             </span>
           </div>
 
-          {/* Decorative background circle */}
-          <div className='absolute -bottom-10 -left-10 w-32 h-32 bg-primary-hover/10 rounded-full blur-3xl opacity-50'></div>
-        </section>
-      </div>
-
-      {/* --- FLOATING ACTION BUTTON --- */}
-      <button
-        onClick={() => setIsAddMenuModalOpen(true)}
-        className='fixed bottom-10 right-8 w-16 h-16 bg-text-primary text-surface rounded-full flex items-center justify-center shadow-[0_15px_40px_rgb(0,0,0,0.2)] border-4 border-surface hover:scale-110 active:scale-95 transition-all z-40'
-      >
-        <Plus className='w-8 h-8' strokeWidth={3} />
-      </button>
+          {/* Decorative background blur */}
+          <div className='absolute -bottom-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none'></div>
+        </motion.section>
+      </motion.div>
 
       {/* --- LOADING OVERLAY --- */}
-      {isScanning && (
-        <div className='fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/60 backdrop-blur-sm'>
-          <Loader2 className='w-12 h-12 text-primary animate-spin mb-4' />
-          <p className='text-text-primary font-bold animate-pulse'>
-            AI lagi baca bon kamu...
-          </p>
-          <p className='text-text-secondary text-xs mt-2'>Tunggu bentar ygy </p>
-        </div>
-      )}
-
-      {/* --- MODAL KONFIRMASI HASIL SCAN AI --- */}
-      {isConfirmScanModalOpen && (
-        <div className='fixed inset-0 z-[60] flex items-end justify-center bg-black/60 backdrop-blur-sm p-4'>
-          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 max-h-[85vh] flex flex-col border border-border'>
-            <div className='flex justify-between items-center mb-6 flex-shrink-0'>
-              <div>
-                <h3 className='font-black text-xl text-text-primary'>
-                  Cek Dulu Boss
-                </h3>
-                <p className='text-[10px] text-text-secondary font-bold uppercase mt-1'>
-                  Bisa diedit kalau AI-nya typo
-                </p>
-              </div>
-              <button
-                onClick={() => setIsConfirmScanModalOpen(false)}
-                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary transition-colors hover:bg-border'
-              >
-                <X className='w-5 h-5' />
-              </button>
+      <AnimatePresence>
+        {isScanning && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className='fixed inset-0 z-[100] flex flex-col items-center justify-center bg-bg/80 backdrop-blur-sm'
+          >
+            <div className='bg-surface p-6 rounded-[2rem] shadow-2xl flex flex-col items-center border border-border'>
+              <Loader2 className='w-10 h-10 text-primary animate-spin mb-4' />
+              <p className='text-text-primary font-black text-lg animate-pulse mb-1'>
+                Membaca Bon...
+              </p>
+              <p className='text-text-secondary text-xs font-bold uppercase tracking-widest'>
+                Tunggu Sebentar Yaaa!
+              </p>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            <div className='overflow-y-auto scrollbar-hide space-y-4 mb-6 flex-1 pr-2'>
-              {/* Hasil Items */}
-              {scannedData.items.map((item) => (
-                <div
-                  key={item.id}
-                  className='bg-bg-hover p-4 rounded-2xl border border-border flex gap-3'
+      {/* --- MODAL KONFIRMASI HASIL SCAN AI (BOTTOM SHEET) --- */}
+      <AnimatePresence>
+        {isConfirmScanModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface w-full max-w-md rounded-t-[2.5rem] p-6 shadow-2xl max-h-[90vh] flex flex-col border-t border-border mx-auto'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6 flex-shrink-0'>
+                <div>
+                  <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                    <CheckCircle2 className='w-6 h-6 text-primary' /> Cek Hasil
+                    Scan
+                  </h3>
+                  <p className='text-[10px] text-text-secondary font-bold uppercase mt-1 tracking-widest'>
+                    Bisa diedit kalau AI-nya typo
+                  </p>
+                </div>
+                <button
+                  onClick={() => setIsConfirmScanModalOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary transition-colors hover:bg-border'
                 >
-                  <div className='flex-1'>
-                    <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
-                      Nama Menu
-                    </label>
-                    <input
-                      type='text'
-                      value={item.name}
-                      onChange={(e) =>
-                        updateScannedItem(item.id, 'name', e.target.value)
-                      }
-                      className='w-full bg-surface border border-border px-3 py-2 rounded-xl text-sm font-bold outline-none text-text-primary'
-                    />
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+
+              <div className='overflow-y-auto scrollbar-hide space-y-4 mb-6 flex-1 px-1'>
+                {scannedData.items.map((item) => (
+                  <div
+                    key={item.id}
+                    className='bg-bg/50 p-4 rounded-[1.5rem] border border-border flex flex-col gap-3'
+                  >
+                    <div className='flex gap-3'>
+                      <div className='flex-1 bg-surface p-3 rounded-[1.2rem] border border-border focus-within:border-primary'>
+                        <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
+                          Nama Menu
+                        </label>
+                        <input
+                          type='text'
+                          value={item.name}
+                          onChange={(e) =>
+                            updateScannedItem(item.id, 'name', e.target.value)
+                          }
+                          className='w-full bg-transparent text-sm font-bold outline-none text-text-primary'
+                        />
+                      </div>
+                      <button
+                        onClick={() => deleteScannedItem(item.id)}
+                        className='w-12 bg-expense/10 rounded-[1.2rem] flex items-center justify-center text-expense hover:bg-expense/20 transition-colors'
+                      >
+                        <Trash2 className='w-5 h-5' />
+                      </button>
+                    </div>
+                    <div className='bg-surface p-3 rounded-[1.2rem] border border-border focus-within:border-primary flex items-center'>
+                      <span className='text-text-secondary font-black mr-2 text-sm'>
+                        Rp
+                      </span>
+                      <div className='w-full'>
+                        <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
+                          Harga
+                        </label>
+                        <input
+                          type='number'
+                          value={item.price}
+                          onChange={(e) =>
+                            updateScannedItem(
+                              item.id,
+                              'price',
+                              Number(e.target.value),
+                            )
+                          }
+                          className='w-full bg-transparent text-sm font-black outline-none text-text-primary'
+                        />
+                      </div>
+                    </div>
                   </div>
-                  <div className='w-1/3'>
+                ))}
+
+                {/* Hasil Extra (Tax & Service) */}
+                <div className='grid grid-cols-2 gap-3 pt-4 mt-4 border-t border-dashed border-border'>
+                  <div className='bg-surface p-4 rounded-[1.5rem] border border-border focus-within:border-primary'>
                     <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
-                      Harga (Rp)
+                      Tax / PPN (Rp)
                     </label>
                     <input
                       type='number'
-                      value={item.price}
+                      value={scannedData.tax}
                       onChange={(e) =>
-                        updateScannedItem(
-                          item.id,
-                          'price',
-                          Number(e.target.value),
-                        )
+                        setScannedData({
+                          ...scannedData,
+                          tax: Number(e.target.value),
+                        })
                       }
-                      className='w-full bg-surface border border-border px-3 py-2 rounded-xl text-sm font-bold outline-none text-text-primary'
+                      className='w-full bg-transparent text-sm font-bold outline-none text-text-primary'
                     />
                   </div>
-                  <button
-                    onClick={() => deleteScannedItem(item.id)}
-                    className='self-end pb-2 text-expense/50 hover:text-expense transition-colors'
-                  >
-                    <Trash2 className='w-5 h-5' />
-                  </button>
-                </div>
-              ))}
-
-              {/* Hasil Extra (Tax & Service) */}
-              <div className='grid grid-cols-2 gap-3 pt-4 border-t border-dashed border-border'>
-                <div className='bg-bg-hover p-3 rounded-2xl border border-border'>
-                  <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
-                    Tax / PPN (Rp)
-                  </label>
-                  <input
-                    type='number'
-                    value={scannedData.tax}
-                    onChange={(e) =>
-                      setScannedData({
-                        ...scannedData,
-                        tax: Number(e.target.value),
-                      })
-                    }
-                    className='w-full bg-transparent text-sm font-bold outline-none text-text-primary'
-                  />
-                </div>
-                <div className='bg-bg-hover p-3 rounded-2xl border border-border'>
-                  <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
-                    Service (Rp)
-                  </label>
-                  <input
-                    type='number'
-                    value={scannedData.service}
-                    onChange={(e) =>
-                      setScannedData({
-                        ...scannedData,
-                        service: Number(e.target.value),
-                      })
-                    }
-                    className='w-full bg-transparent text-sm font-bold outline-none text-text-primary'
-                  />
+                  <div className='bg-surface p-4 rounded-[1.5rem] border border-border focus-within:border-primary'>
+                    <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
+                      Service (Rp)
+                    </label>
+                    <input
+                      type='number'
+                      value={scannedData.service}
+                      onChange={(e) =>
+                        setScannedData({
+                          ...scannedData,
+                          service: Number(e.target.value),
+                        })
+                      }
+                      className='w-full bg-transparent text-sm font-bold outline-none text-text-primary'
+                    />
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <button
-              onClick={confirmScannedData}
-              className='w-full bg-primary text-text-primary py-4 rounded-2xl font-black shadow-lg flex items-center justify-center gap-2 flex-shrink-0 hover:opacity-90 active:scale-95 transition-all'
-            >
-              Acc & Masukkan Bon <ArrowLeft className='w-5 h-5 rotate-180' />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL TAMBAH MENU (MANUAL) */}
-      {isAddMenuModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4'>
-          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 border border-border'>
-            <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-text-primary'>
-                Menu Baru
-              </h3>
-              <button
-                onClick={() => setIsAddMenuModalOpen(false)}
-                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={confirmScannedData}
+                className='w-full bg-primary text-surface py-4 rounded-[1.5rem] font-black shadow-lg flex items-center justify-center gap-2 flex-shrink-0 border border-white/20'
               >
-                <X className='w-5 h-5' />
-              </button>
-            </div>
-            <div className='space-y-4 mb-6'>
-              <input
-                placeholder='Nama Menu (misal: Iced Matcha)'
-                className='w-full bg-bg border border-border p-4 rounded-2xl font-bold outline-none text-text-primary'
-                value={newItemName}
-                onChange={(e) => setNewItemName(e.target.value)}
-              />
-              <div className='relative'>
-                <span className='absolute left-4 top-1/2 -translate-y-1/2 font-black text-text-secondary'>
-                  Rp
-                </span>
+                Acc & Masukkan Bon <ArrowLeft className='w-5 h-5 rotate-180' />
+              </motion.button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL TAMBAH MENU MANUAL (BOTTOM SHEET) */}
+      <AnimatePresence>
+        {isAddMenuModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm'
+              onClick={() => setIsAddMenuModalOpen(false)}
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface w-full max-w-md rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border mx-auto flex flex-col'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6'></div>
+              <div className='flex justify-between items-center mb-6'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <Utensils className='w-6 h-6 text-primary' /> Menu Baru
+                </h3>
+                <button
+                  onClick={() => setIsAddMenuModalOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+              <div className='space-y-4 mb-6'>
+                <div className='bg-bg/50 p-4 rounded-[1.5rem] border border-border focus-within:border-primary transition-colors'>
+                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                    Nama Pesanan
+                  </label>
+                  <input
+                    type='text'
+                    placeholder='Misal: Iced Matcha'
+                    className='w-full bg-transparent font-bold outline-none text-text-primary text-sm'
+                    value={newItemName}
+                    onChange={(e) => setNewItemName(e.target.value)}
+                  />
+                </div>
+                <div className='bg-bg/50 p-4 rounded-[1.5rem] border border-border focus-within:border-primary transition-colors flex items-center'>
+                  <span className='text-xl font-black text-text-secondary mr-3'>
+                    Rp
+                  </span>
+                  <div className='w-full'>
+                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                      Harga
+                    </label>
+                    <input
+                      type='number'
+                      placeholder='0'
+                      className='w-full bg-transparent font-black text-lg outline-none text-text-primary'
+                      value={newItemPrice}
+                      onChange={(e) => setNewItemPrice(e.target.value)}
+                    />
+                  </div>
+                </div>
+              </div>
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAddNewItem}
+                className='w-full bg-primary text-surface py-4 rounded-[1.5rem] font-black shadow-lg'
+              >
+                Tambahkan
+              </motion.button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* MODAL TAMBAH SQUAD (BOTTOM SHEET) */}
+      <AnimatePresence>
+        {isAddMemberModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className='fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm'
+              onClick={() => setIsAddMemberModalOpen(false)}
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface w-full max-w-md rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border mx-auto flex flex-col'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6'></div>
+              <div className='flex justify-between items-center mb-6'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <UserPlus className='w-6 h-6 text-primary' /> Ajak Bestie
+                </h3>
+                <button
+                  onClick={() => setIsAddMemberModalOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+              <div className='bg-bg/50 p-4 rounded-[1.5rem] border border-border focus-within:border-primary transition-colors mb-6'>
+                <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                  Nama Panggilan
+                </label>
                 <input
-                  type='number'
-                  placeholder='Harga'
-                  className='w-full bg-bg border border-border p-4 pl-10 rounded-2xl font-bold outline-none text-text-primary'
-                  value={newItemPrice}
-                  onChange={(e) => setNewItemPrice(e.target.value)}
+                  type='text'
+                  placeholder='Masukkan nama...'
+                  className='w-full bg-transparent font-bold outline-none text-text-primary text-sm'
+                  value={newMemberName}
+                  onChange={(e) => setNewMemberName(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleAddNewMember()}
                 />
               </div>
-            </div>
-            <button
-              onClick={handleAddNewItem}
-              className='w-full bg-primary text-text-primary py-4 rounded-2xl font-black shadow-lg hover:opacity-90 active:scale-95 transition-all'
-            >
-              Tambahkan
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* MODAL TAMBAH SQUAD */}
-      {isAddMemberModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4'>
-          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl animate-in slide-in-from-bottom-10 border border-border'>
-            <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-text-primary'>
-                Ajak Bestie
-              </h3>
-              <button
-                onClick={() => setIsAddMemberModalOpen(false)}
-                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleAddNewMember}
+                className='w-full bg-primary text-surface py-4 rounded-[1.5rem] font-black shadow-lg'
               >
-                <X className='w-5 h-5' />
-              </button>
-            </div>
-            <input
-              placeholder='Nama Panggilan'
-              className='w-full bg-bg border border-border p-4 rounded-2xl font-bold outline-none mb-6 text-text-primary'
-              value={newMemberName}
-              onChange={(e) => setNewMemberName(e.target.value)}
-            />
-            <button
-              onClick={handleAddNewMember}
-              className='w-full bg-primary text-text-primary py-4 rounded-2xl font-black shadow-lg hover:opacity-90 active:scale-95 transition-all'
-            >
-              Gabung Squad
-            </button>
-          </div>
-        </div>
-      )}
+                Gabung Squad
+              </motion.button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
