@@ -1,17 +1,11 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/storage';
-import {
-  ArrowLeft,
-  Plus,
-  X,
-  AlertOctagon,
-  CheckCircle2,
-  Wallet,
-  TrendingDown,
-} from 'lucide-react';
+import { formatRupiah, EXPENSE_CATEGORIES } from '@/lib/utils';
+import PageHeader from '@/components/PageHeader';
+import { Plus, X, AlertOctagon, TrendingDown } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 export default function BudgetPage() {
@@ -27,28 +21,8 @@ export default function BudgetPage() {
   const [selectedCategory, setSelectedCategory] = useState('pokok');
   const [budgetLimit, setBudgetLimit] = useState('');
 
-  const defaultCategories = [
-    { id: 'pokok', label: 'Pokok (Needs)', icon: '🍱', color: 'bg-blue-500' },
-    {
-      id: 'keinginan',
-      label: 'Keinginan (Wants)',
-      icon: '🛍️',
-      color: 'bg-pink-500',
-    },
-    {
-      id: 'tabungan',
-      label: 'Tabungan (Savings)',
-      icon: '🐷',
-      color: 'bg-green-500',
-    },
-    { id: 'investasi', label: 'Investasi', icon: '📈', color: 'bg-purple-500' },
-    {
-      id: 'tetap',
-      label: 'Tetap (Rutinitas)',
-      icon: '🔁',
-      color: 'bg-orange-500',
-    },
-  ];
+  // Use EXPENSE_CATEGORIES from shared utils (replaces local defaultCategories)
+  const defaultCategories = EXPENSE_CATEGORIES;
 
   // -- LOAD DATA & HITUNG PENGELUARAN BULAN INI --
   useEffect(() => {
@@ -83,13 +57,6 @@ export default function BudgetPage() {
     loadBudgetData();
   }, []);
 
-  const formatRupiah = (num) =>
-    new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0,
-    }).format(num || 0);
-
   // -- ACTIONS --
   const handleSaveBudget = async () => {
     if (!budgetLimit || Number(budgetLimit) <= 0)
@@ -117,15 +84,7 @@ export default function BudgetPage() {
       <div className='absolute top-0 left-0 w-full h-56 bg-gradient-to-b from-stone-200/50 to-transparent z-0'></div>
 
       <div className='relative z-10 p-6 max-w-md mx-auto'>
-        <header className='flex items-center gap-4 mb-8 pt-2'>
-          <button
-            onClick={() => router.back()}
-            className='w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-stone-200 hover:bg-stone-50 transition-colors'
-          >
-            <ArrowLeft className='w-5 h-5 text-stone-800' />
-          </button>
-          <h1 className='text-xl font-black text-stone-800'>Budget Bulanan</h1>
-        </header>
+        <PageHeader title='Budget Bulanan' />
 
         {/* --- SUMMARY CARD --- */}
         <section className='bg-stone-800 p-6 rounded-[2.5rem] shadow-xl text-white mb-8 relative overflow-hidden'>

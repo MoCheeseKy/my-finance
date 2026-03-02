@@ -3,20 +3,16 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, initDummyData } from '@/lib/storage';
+import TransactionCard from '@/components/TransactionCard';
 import {
   ArrowDownCircle,
   ArrowUpCircle,
   Plus,
   Target,
-  Zap,
-  Home,
-  PieChart,
-  MessageSquare,
-  CreditCard,
-  RefreshCw,
   Wallet,
-  ReceiptText,
   PiggyBank,
+  ReceiptText,
+  TrendingUp,
   ChevronRight,
 } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
@@ -182,7 +178,10 @@ export default function Dashboard() {
           </h3>
           <div className='grid grid-cols-2 gap-3 pb-2'>
             {/* Nabung */}
-            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-blue/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-blue-300 transition-all cursor-pointer group'>
+            <div
+              onClick={() => router.push('/savings')}
+              className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-blue/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-blue-300 transition-all cursor-pointer group'
+            >
               <div className='w-12 h-12 mb-2 bg-pastel-blue/30 rounded-full flex items-center justify-center'>
                 <PiggyBank className='w-6 h-6 text-blue-500' />
               </div>
@@ -192,7 +191,10 @@ export default function Dashboard() {
             </div>
 
             {/* Split Bill */}
-            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-peach/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-orange-300 transition-all cursor-pointer group'>
+            <div
+              onClick={() => router.push('/split-bill')}
+              className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-peach/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-orange-300 transition-all cursor-pointer group'
+            >
               <div className='w-12 h-12 mb-2 bg-pastel-peach/40 rounded-full flex items-center justify-center'>
                 <ReceiptText className='w-6 h-6 text-orange-500' />
               </div>
@@ -201,18 +203,24 @@ export default function Dashboard() {
               </span>
             </div>
 
-            {/* Investment */}
-            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-peach/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-orange-300 transition-all cursor-pointer group'>
-              <div className='w-12 h-12 mb-2 bg-pastel-peach/40 rounded-full flex items-center justify-center'>
-                <ReceiptText className='w-6 h-6 text-orange-500' />
+            {/* Investasi */}
+            <div
+              onClick={() => router.push('/investment')}
+              className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-purple-200/60 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-purple-400 transition-all cursor-pointer group'
+            >
+              <div className='w-12 h-12 mb-2 bg-purple-50 rounded-full flex items-center justify-center'>
+                <TrendingUp className='w-6 h-6 text-purple-500' />
               </div>
-              <span className='text-xs font-bold text-text-main group-hover:text-orange-500 transition-colors'>
+              <span className='text-xs font-bold text-text-main group-hover:text-purple-500 transition-colors'>
                 Investasi
               </span>
             </div>
 
             {/* Budgeting */}
-            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-green/60 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-green-400 transition-all cursor-pointer group'>
+            <div
+              onClick={() => router.push('/budget')}
+              className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-green/60 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-green-400 transition-all cursor-pointer group'
+            >
               <div className='w-12 h-12 mb-2 bg-pastel-green/40 rounded-full flex items-center justify-center'>
                 <Target className='w-6 h-6 text-green-600' />
               </div>
@@ -246,29 +254,7 @@ export default function Dashboard() {
               </div>
             ) : (
               recentTransactions.map((txn) => (
-                <div
-                  key={txn.id}
-                  className='bg-white/90 backdrop-blur-sm p-3 rounded-[1.5rem] border-2 border-pastel-pink/30 shadow-sm flex justify-between items-center hover:border-pastel-pink hover:-translate-y-0.5 transition-all'
-                >
-                  <div className='flex-1 min-w-0 mr-3'>
-                    <p className='font-bold text-text-main text-sm mb-0.5 truncate'>
-                      {txn.title}
-                    </p>
-                    <div className='flex gap-2 text-[10px] font-bold text-text-muted'>
-                      <span className='capitalize'>{txn.category}</span>
-                    </div>
-                  </div>
-                  <p
-                    className={`font-black text-sm whitespace-nowrap ${txn.type === 'expense' ? 'text-red-500' : txn.type === 'income' ? 'text-green-500' : 'text-text-main'}`}
-                  >
-                    {txn.type === 'expense'
-                      ? '-'
-                      : txn.type === 'income'
-                        ? '+'
-                        : ''}
-                    {formatRupiah(txn.amount)}
-                  </p>
-                </div>
+                <TransactionCard key={txn.id} txn={txn} />
               ))
             )}
           </div>

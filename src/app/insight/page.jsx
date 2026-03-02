@@ -3,6 +3,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/storage';
+import { formatRupiah } from '@/lib/utils';
+import TransactionCard from '@/components/TransactionCard';
 import {
   ArrowLeft,
   ChevronLeft,
@@ -207,13 +209,6 @@ export default function Insights() {
       selectedCategory === 'all' || txn.category === selectedCategory;
     return matchSearch && matchDate && matchCategory;
   });
-
-  const formatRupiah = (num) =>
-    new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0,
-    }).format(num || 0);
 
   const headerDateLabel = () => {
     if (period === 'monthly')
@@ -522,30 +517,7 @@ export default function Insights() {
               filteredList
                 .sort((a, b) => b.date.localeCompare(a.date))
                 .map((txn) => (
-                  <div
-                    key={txn.id}
-                    className='bg-white p-4 rounded-[1.5rem] border-2 border-pastel-pink/30 shadow-sm flex justify-between items-center hover:border-pastel-pink transition-all'
-                  >
-                    <div className='flex-1 min-w-0 mr-3'>
-                      <p className='font-bold text-stone-800 text-sm mb-1 truncate'>
-                        {txn.title}
-                      </p>
-                      <div className='flex gap-2 text-[10px] font-bold text-stone-400'>
-                        <span className='capitalize'>{txn.category}</span> •{' '}
-                        <span>{format(new Date(txn.date), 'dd MMM')}</span>
-                      </div>
-                    </div>
-                    <p
-                      className={`font-black text-sm whitespace-nowrap ${txn.type === 'expense' ? 'text-red-500' : txn.type === 'income' ? 'text-green-500' : 'text-stone-800'}`}
-                    >
-                      {txn.type === 'expense'
-                        ? '-'
-                        : txn.type === 'income'
-                          ? '+'
-                          : ''}
-                      {formatRupiah(txn.amount)}
-                    </p>
-                  </div>
+                  <TransactionCard key={txn.id} txn={txn} showDate />
                 ))
             )}
           </div>

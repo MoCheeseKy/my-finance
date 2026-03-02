@@ -3,27 +3,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/storage';
+import { formatRupiah } from '@/lib/utils';
+import PageHeader from '@/components/PageHeader';
 import {
-  ArrowLeft,
   Target,
   Calendar,
   Plus,
   Trash2,
-  TrendingUp,
-  Wallet,
   Flame,
-  Info,
   CheckCircle2,
 } from 'lucide-react';
-import {
-  format,
-  differenceInDays,
-  differenceInWeeks,
-  differenceInMonths,
-  isAfter,
-  parseISO,
-} from 'date-fns';
-import { id as localeId } from 'date-fns/locale';
+import { differenceInDays, parseISO, format } from 'date-fns';
 
 export default function SavingsPage() {
   const router = useRouter();
@@ -76,35 +66,22 @@ export default function SavingsPage() {
     await db.setItem('savings_plans', updated);
   };
 
-  const formatRupiah = (num) =>
-    new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0,
-    }).format(num || 0);
-
   return (
     <main className='min-h-screen bg-[#FAFAF9] pb-28 relative'>
       <div className='absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-100/50 to-transparent z-0'></div>
 
       <div className='relative z-10 p-6 max-w-md mx-auto'>
-        <header className='flex justify-between items-center mb-8 pt-2'>
-          <div className='flex items-center gap-4'>
+        <PageHeader
+          title='Saving Plan'
+          rightAction={
             <button
-              onClick={() => router.back()}
-              className='w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-stone-200'
+              onClick={() => setShowAddModal(true)}
+              className='w-10 h-10 bg-stone-800 rounded-2xl flex items-center justify-center shadow-lg text-white'
             >
-              <ArrowLeft className='w-5 h-5 text-stone-800' />
+              <Plus className='w-5 h-5' />
             </button>
-            <h1 className='text-xl font-black text-stone-800'>Saving Plan</h1>
-          </div>
-          <button
-            onClick={() => setShowAddModal(true)}
-            className='w-10 h-10 bg-stone-800 rounded-2xl flex items-center justify-center shadow-lg text-white'
-          >
-            <Plus className='w-5 h-5' />
-          </button>
-        </header>
+          }
+        />
 
         {/* --- LIST SAVING PLANS --- */}
         <div className='space-y-6'>
@@ -219,13 +196,7 @@ export default function SavingsPage() {
 }
 
 function SavingCard({ plan, onDelete }) {
-  const formatRupiah = (num) =>
-    new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      maximumFractionDigits: 0,
-    }).format(num || 0);
-
+  // Use the shared formatRupiah from utils
   // Perhitungan Proyeksi
   const stats = useMemo(() => {
     const today = new Date();

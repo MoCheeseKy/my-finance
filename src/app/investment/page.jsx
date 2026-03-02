@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/storage';
+import DarkDrawer from '@/components/DarkDrawer';
+import Toast from '@/components/Toast';
 import {
   ArrowLeft,
   Plus,
@@ -15,10 +17,8 @@ import {
   Building,
   Edit3,
   Trash2,
-  X,
   AlertTriangle,
   CheckCircle2,
-  ChevronRight,
   PieChart,
   Info,
 } from 'lucide-react';
@@ -189,19 +189,7 @@ export default function InvestmentPage() {
         </button>
       </header>
 
-      {/* FEEDBACK TOAST */}
-      {message.text && (
-        <div
-          className={`fixed top-6 left-1/2 -translate-x-1/2 z-50 px-5 py-3.5 rounded-full shadow-[0_8px_30px_rgb(0,0,0,0.12)] flex items-center gap-2.5 animate-in slide-in-from-top-10 font-bold text-sm backdrop-blur-md ${message.type === 'success' ? 'bg-stone-800/95 text-white' : 'bg-red-500/95 text-white'}`}
-        >
-          {message.type === 'success' ? (
-            <CheckCircle2 className='w-5 h-5 text-green-400' />
-          ) : (
-            <AlertTriangle className='w-5 h-5 text-white' />
-          )}
-          {message.text}
-        </div>
-      )}
+      <Toast type={message.type} text={message.text} />
 
       {/* SECTION 1: SUMMARY CARD (PREMIUM UI) */}
       <section className='bg-gradient-to-br from-stone-800 to-stone-900 dark:from-stone-800 dark:to-stone-950 p-6 rounded-[2rem] shadow-[0_12px_40px_rgb(0,0,0,0.15)] mb-8 relative overflow-hidden text-white'>
@@ -329,133 +317,102 @@ export default function InvestmentPage() {
         </div>
       )}
 
-      {/* --- DRAWER / POPUP: TAMBAH & EDIT ASET --- */}
-      {isDrawerOpen && (
-        <div
-          className='fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-stone-900/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in'
-          onClick={() => setIsDrawerOpen(false)}
-        >
-          <div
-            className='bg-white dark:bg-[#1A1A1A] w-full max-w-md max-h-[90vh] flex flex-col rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl animate-in slide-in-from-bottom-10 md:zoom-in-95 overflow-hidden border border-stone-100 dark:border-stone-800'
-            onClick={(e) => e.stopPropagation()}
+      {/* DRAWER TAMBAH & EDIT ASET */}
+      <DarkDrawer
+        isOpen={isDrawerOpen}
+        onClose={() => setIsDrawerOpen(false)}
+        title={editingId ? 'Edit Aset' : 'Tambah Aset'}
+        headerRight={
+          editingId && (
+            <button
+              onClick={() => handleDelete(editingId)}
+              className='p-2.5 bg-red-50 dark:bg-red-500/10 rounded-full hover:bg-red-100 transition-colors'
+            >
+              <Trash2 className='w-5 h-5 text-red-500' />
+            </button>
+          )
+        }
+        footer={
+          <button
+            onClick={handleSave}
+            className='w-full py-4 bg-stone-800 dark:bg-white text-white dark:text-stone-900 font-black text-[15px] rounded-2xl shadow-lg hover:opacity-90 transition-all active:scale-95'
           >
-            {/* Header Modal */}
-            <div className='p-6 pb-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-white/50 dark:bg-transparent backdrop-blur-md'>
-              <h3 className='font-black text-xl text-stone-800 dark:text-white tracking-tight'>
-                {editingId ? 'Edit Aset' : 'Tambah Aset'}
-              </h3>
-              <div className='flex items-center gap-2'>
-                {editingId && (
-                  <button
-                    onClick={() => handleDelete(editingId)}
-                    className='p-2.5 bg-red-50 dark:bg-red-500/10 rounded-full hover:bg-red-100 transition-colors'
-                  >
-                    <Trash2 className='w-5 h-5 text-red-500' />
-                  </button>
-                )}
-                <button
-                  onClick={() => setIsDrawerOpen(false)}
-                  className='p-2.5 bg-stone-100 dark:bg-stone-800 rounded-full hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors'
-                >
-                  <X className='w-5 h-5 text-stone-600 dark:text-stone-300' />
-                </button>
-              </div>
-            </div>
+            {editingId ? 'Simpan Perubahan ✅' : 'Tambahkan ke Portofolio 🚀'}
+          </button>
+        }
+      >
+        {/* Nama Aset */}
+        <div className='bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-4 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
+          <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2'>
+            Nama Aset
+          </label>
+          <input
+            type='text'
+            value={formData.name}
+            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+            placeholder='Misal: BBCA, Bitcoin, Sucorinvest...'
+            className='w-full bg-transparent outline-none font-bold text-stone-800 dark:text-white text-[15px]'
+          />
+        </div>
 
-            {/* Body Modal */}
-            <div className='p-6 overflow-y-auto space-y-5'>
-              {/* Nama Aset */}
-              <div className='bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-4 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
-                <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2'>
-                  Nama Aset
-                </label>
-                <input
-                  type='text'
-                  value={formData.name}
-                  onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder='Misal: BBCA, Bitcoin, Sucorinvest...'
-                  className='w-full bg-transparent outline-none font-bold text-stone-800 dark:text-white text-[15px]'
-                />
-              </div>
+        {/* Tipe Aset */}
+        <div className='bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-4 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
+          <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2'>
+            Jenis Instrumen
+          </label>
+          <select
+            value={formData.type}
+            onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+            className='w-full bg-transparent outline-none font-bold text-stone-800 dark:text-white text-[15px] cursor-pointer'
+          >
+            {Object.entries(assetTypes).map(([key, config]) => (
+              <option key={key} value={key} className='text-stone-800'>
+                {config.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-              {/* Tipe Aset */}
-              <div className='bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-4 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
-                <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2'>
-                  Jenis Instrumen
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={(e) =>
-                    setFormData({ ...formData, type: e.target.value })
-                  }
-                  className='w-full bg-transparent outline-none font-bold text-stone-800 dark:text-white text-[15px] cursor-pointer'
-                >
-                  {Object.entries(assetTypes).map(([key, config]) => (
-                    <option key={key} value={key} className='text-stone-800'>
-                      {config.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Nominal Group */}
-              <div className='flex gap-3'>
-                <div className='flex-1 bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-4 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
-                  <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2'>
-                    Modal Awal (Rp)
-                  </label>
-                  <input
-                    type='number'
-                    value={formData.invested}
-                    onChange={(e) =>
-                      setFormData({ ...formData, invested: e.target.value })
-                    }
-                    placeholder='0'
-                    className='w-full bg-transparent outline-none font-bold text-stone-800 dark:text-white text-[15px]'
-                  />
-                </div>
-
-                <div className='flex-1 bg-blue-50 dark:bg-blue-500/10 rounded-2xl p-4 border border-blue-200 dark:border-blue-900/50 focus-within:border-blue-500 transition-colors'>
-                  <label className='text-[10px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest block mb-2'>
-                    Nilai Saat Ini (Rp)
-                  </label>
-                  <input
-                    type='number'
-                    value={formData.current}
-                    onChange={(e) =>
-                      setFormData({ ...formData, current: e.target.value })
-                    }
-                    placeholder='0'
-                    className='w-full bg-transparent outline-none font-black text-blue-700 dark:text-blue-300 text-[15px]'
-                  />
-                </div>
-              </div>
-
-              <div className='bg-stone-100 dark:bg-stone-800/50 p-4 rounded-2xl flex items-start gap-3 mt-2'>
-                <Info className='w-5 h-5 text-stone-400 shrink-0 mt-0.5' />
-                <p className='text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-relaxed'>
-                  Perbarui {'"'}Nilai Saat Ini{'"'} secara berkala untuk
-                  memantau performa keuntungan (profit/loss) investasimu.
-                </p>
-              </div>
-            </div>
-
-            {/* Footer Modal */}
-            <div className='p-6 pt-2 bg-white dark:bg-[#1A1A1A]'>
-              <button
-                onClick={handleSave}
-                className='w-full py-4.5 bg-stone-800 dark:bg-white text-white dark:text-stone-900 font-black text-[15px] rounded-2xl shadow-lg hover:opacity-90 transition-all active:scale-95'
-              >
-                {editingId
-                  ? 'Simpan Perubahan ✅'
-                  : 'Tambahkan ke Portofolio 🚀'}
-              </button>
-            </div>
+        {/* Nominal */}
+        <div className='flex gap-3'>
+          <div className='flex-1 bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-4 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
+            <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2'>
+              Modal Awal (Rp)
+            </label>
+            <input
+              type='number'
+              value={formData.invested}
+              onChange={(e) =>
+                setFormData({ ...formData, invested: e.target.value })
+              }
+              placeholder='0'
+              className='w-full bg-transparent outline-none font-bold text-stone-800 dark:text-white text-[15px]'
+            />
+          </div>
+          <div className='flex-1 bg-blue-50 dark:bg-blue-500/10 rounded-2xl p-4 border border-blue-200 dark:border-blue-900/50 focus-within:border-blue-500 transition-colors'>
+            <label className='text-[10px] font-black text-blue-500 dark:text-blue-400 uppercase tracking-widest block mb-2'>
+              Nilai Saat Ini (Rp)
+            </label>
+            <input
+              type='number'
+              value={formData.current}
+              onChange={(e) =>
+                setFormData({ ...formData, current: e.target.value })
+              }
+              placeholder='0'
+              className='w-full bg-transparent outline-none font-black text-blue-700 dark:text-blue-300 text-[15px]'
+            />
           </div>
         </div>
-      )}
+
+        <div className='bg-stone-100 dark:bg-stone-800/50 p-4 rounded-2xl flex items-start gap-3'>
+          <Info className='w-5 h-5 text-stone-400 shrink-0 mt-0.5' />
+          <p className='text-[11px] text-stone-500 dark:text-stone-400 font-medium leading-relaxed'>
+            Perbarui {`"`}Nilai Saat Ini{`"`} secara berkala untuk memantau
+            performa keuntungan (profit/loss) investasimu.
+          </p>
+        </div>
+      </DarkDrawer>
     </main>
   );
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter } from 'next/navigation';
-import { Home, PieChart, Plus, CreditCard, MessageSquare } from 'lucide-react';
+import { Home, PieChart, Plus, CreditCard, User } from 'lucide-react';
 
 export default function BottomNav() {
   const pathname = usePathname();
@@ -18,7 +18,10 @@ export default function BottomNav() {
       >
         <Home className='w-6 h-6' />
       </button>
-      <button className='text-text-muted hover:text-purple-400 flex flex-col items-center gap-1 transition-all hover:-translate-y-2'>
+      <button
+        onClick={() => router.push('/insight')}
+        className={`text-text-muted hover:text-purple-400 flex flex-col items-center gap-1 transition-all hover:-translate-y-2 ${pathname === '/insight' ? 'text-purple-500 scale-110 drop-shadow-md' : ''}`}
+      >
         <PieChart className='w-6 h-6' />
       </button>
 
@@ -38,9 +41,11 @@ export default function BottomNav() {
       >
         <CreditCard className='w-6 h-6' />
       </button>
-      <button className='text-text-muted hover:text-green-400 flex flex-col items-center gap-1 transition-all hover:-translate-y-2 relative'>
-        <MessageSquare className='w-6 h-6' />
-        <span className='absolute -top-1 -right-1 w-3.5 h-3.5 bg-pastel-pink rounded-full border-2 border-white animate-bounce shadow-sm'></span>
+      <button
+        onClick={() => router.push('/user')}
+        className={`text-text-muted hover:text-green-400 flex flex-col items-center gap-1 transition-all hover:-translate-y-2 relative ${pathname === '/user' ? 'text-green-500 scale-110' : ''}`}
+      >
+        <User className='w-6 h-6' />
       </button>
     </nav>
   );

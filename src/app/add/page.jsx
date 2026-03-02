@@ -4,6 +4,11 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/lib/storage';
 import {
+  EXPENSE_CATEGORIES,
+  INCOME_CATEGORIES,
+  todayDateString,
+} from '@/lib/utils';
+import {
   ArrowLeft,
   ChevronDown,
   X,
@@ -22,7 +27,7 @@ export default function AddRecord() {
   const [accounts, setAccounts] = useState([]);
 
   // Dapatkan tanggal lokal hari ini (YYYY-MM-DD)
-  const todayDate = new Date().toLocaleDateString('en-CA');
+  const todayDate = todayDateString();
 
   // State Form Manual
   const [title, setTitle] = useState('');
@@ -42,30 +47,13 @@ export default function AddRecord() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [scannedItems, setScannedItems] = useState([]);
 
-  // --- KATEGORI ---
-  const expenseCategories = [
-    { id: 'pokok', label: 'Pokok (Needs)' },
-    { id: 'keinginan', label: 'Keinginan (Wants)' },
-    { id: 'tabungan', label: 'Tabungan (Savings)' },
-    { id: 'investasi', label: 'Investasi' },
-    { id: 'tetap', label: 'Tetap (Rutinitas)' },
-  ];
-
-  const incomeCategories = [
-    { id: 'uang_jajan', label: 'Uang Jajan / Ortu' },
-    { id: 'gaji', label: 'Gaji / Freelance' },
-    { id: 'jualan', label: 'Hasil Jualan' },
-    { id: 'bonus', label: 'Bonus / Hadiah' },
-    { id: 'bunga', label: 'Bunga / Investasi' },
-  ];
-
   const activeCategories =
-    txnType === 'expense' ? expenseCategories : incomeCategories;
+    txnType === 'expense' ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
 
   const handleTypeChange = (type) => {
     setTxnType(type);
     setCategory(
-      type === 'expense' ? expenseCategories[0].id : incomeCategories[0].id,
+      type === 'expense' ? EXPENSE_CATEGORIES[0].id : INCOME_CATEGORIES[0].id,
     );
   };
 
