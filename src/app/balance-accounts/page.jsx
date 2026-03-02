@@ -184,35 +184,37 @@ export default function AccountsManager() {
     isBalanceInsufficient || isSameAccount || isZeroAmount;
 
   return (
-    <main className='min-h-screen bg-pastel-bg p-6 max-w-md mx-auto pb-24 relative'>
+    <main className='min-h-screen bg-bg p-6 max-w-md mx-auto pb-24 relative transition-colors duration-300'>
       <header className='flex items-center gap-4 mb-8 pt-2'>
         <button
           onClick={() => router.back()}
-          className='w-10 h-10 bg-white rounded-[1rem] flex items-center justify-center shadow-sm border border-pastel-pink hover:bg-pastel-pink transition-colors group'
+          className='w-10 h-10 bg-surface rounded-[1rem] flex items-center justify-center shadow-sm border border-border hover:bg-surface-hover transition-colors group'
         >
-          <ArrowLeft className='w-5 h-5 text-text-main group-hover:text-pink-600 transition-colors' />
+          <ArrowLeft className='w-5 h-5 text-text-primary group-hover:text-primary transition-colors' />
         </button>
-        <h1 className='text-xl font-black text-text-main'>Atur Sumber Dana</h1>
+        <h1 className='text-xl font-black text-text-primary'>
+          Atur Sumber Dana
+        </h1>
       </header>
 
-      <section className='bg-gradient-to-tr from-pastel-purple via-white to-pastel-pink p-6 rounded-[2.5rem] shadow-sm border-2 border-white mb-8 text-text-main relative overflow-hidden'>
+      <section className='bg-surface p-6 rounded-[2.5rem] shadow-sm border border-border mb-8 text-text-primary relative overflow-hidden transition-colors'>
         <div className='relative z-10'>
-          <p className='text-text-main/70 text-sm font-bold mb-1'>
+          <p className='text-text-secondary text-sm font-bold mb-1'>
             Total Saldo Aktif
           </p>
-          <h2 className='text-3xl font-black text-text-main drop-shadow-sm'>
+          <h2 className='text-3xl font-black text-text-primary drop-shadow-sm'>
             {formatRupiah(totalBalance)}
           </h2>
         </div>
-        <div className='absolute -bottom-10 -right-10 w-32 h-32 bg-white/40 rounded-full blur-2xl'></div>
+        <div className='absolute -bottom-10 -right-10 w-32 h-32 bg-primary/10 rounded-full blur-2xl'></div>
       </section>
 
       <section>
         <div className='flex justify-between items-end mb-4 px-1'>
-          <h3 className='text-sm font-black text-stone-400 uppercase tracking-wider'>
+          <h3 className='text-sm font-black text-text-secondary uppercase tracking-wider'>
             Daftar Dompet Kamu
           </h3>
-          <span className='text-xs font-bold text-stone-500 bg-stone-200 px-2 py-1 rounded-lg'>
+          <span className='text-xs font-bold text-text-secondary bg-bg-hover px-2 py-1 rounded-lg border border-border'>
             {accounts.length} Sumber
           </span>
         </div>
@@ -221,22 +223,22 @@ export default function AccountsManager() {
           {accounts.map((acc) => (
             <div
               key={acc.id}
-              className='bg-white/90 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-pastel-blue/30 shadow-sm flex items-center justify-between group transition-all hover:border-pastel-blue/60 hover:-translate-y-0.5'
+              className='bg-surface/90 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-border shadow-sm flex items-center justify-between group transition-all hover:border-text-secondary/50 hover:-translate-y-0.5'
             >
               <div className='flex items-center gap-4'>
-                <div className='w-12 h-12 bg-pastel-blue rounded-[1rem] flex items-center justify-center border border-white shadow-inner'>
-                  <CreditCard className='w-6 h-6 text-blue-500' />
+                <div className='w-12 h-12 bg-bg-hover rounded-[1rem] flex items-center justify-center border border-border shadow-inner'>
+                  <CreditCard className='w-6 h-6 text-primary' />
                 </div>
                 <div>
-                  <p className='font-bold text-text-main text-lg leading-tight'>
+                  <p className='font-bold text-text-primary text-lg leading-tight'>
                     {acc.name}{' '}
                     {acc.id === 'cash' && (
-                      <span className='text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full ml-1 align-middle'>
+                      <span className='text-[10px] bg-bg-hover text-text-secondary px-2 py-0.5 rounded-full ml-1 align-middle border border-border'>
                         Default
                       </span>
                     )}
                   </p>
-                  <p className='text-xs font-bold text-stone-400'>
+                  <p className='text-xs font-bold text-text-secondary'>
                     {formatRupiah(acc.balance)}
                   </p>
                 </div>
@@ -245,7 +247,7 @@ export default function AccountsManager() {
               {acc.id !== 'cash' && (
                 <button
                   onClick={() => handleDeleteAccount(acc.id, acc.name)}
-                  className='w-10 h-10 rounded-xl flex items-center justify-center text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors'
+                  className='w-10 h-10 rounded-xl flex items-center justify-center text-expense/60 hover:bg-expense/10 hover:text-expense transition-colors'
                 >
                   <Trash2 className='w-5 h-5' />
                 </button>
@@ -262,14 +264,14 @@ export default function AccountsManager() {
         {accounts.length >= 2 && (
           <button
             onClick={handleOpenTransfer}
-            className='w-full py-4 bg-white text-text-main border-2 border-pastel-purple font-black rounded-[2rem] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:bg-pastel-purple/10'
+            className='w-full py-4 bg-surface text-text-primary border-2 border-border font-black rounded-[2rem] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:bg-bg-hover'
           >
-            <ArrowRightLeft className='w-5 h-5 text-purple-500' /> Transfer
+            <ArrowRightLeft className='w-5 h-5 text-primary' /> Transfer
           </button>
         )}
         <button
           onClick={() => setIsModalOpen(true)}
-          className='w-full py-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-2 border-white/50'
+          className='w-full py-4 bg-gradient-to-r from-primary to-investment text-text-primary font-black rounded-[2rem] shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-2 border-primary/20'
         >
           <Plus className='w-5 h-5' /> Tambah
         </button>
@@ -277,23 +279,23 @@ export default function AccountsManager() {
 
       {/* --- MODAL TAMBAH SUMBER --- */}
       {isModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-stone-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
+        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
+          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 border border-border'>
             <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-stone-800'>
+              <h3 className='font-black text-xl text-text-primary'>
                 Bikin Sumber Baru
               </h3>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className='w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200'
+                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
               >
                 <X className='w-5 h-5' />
               </button>
             </div>
 
             <div className='space-y-4 mb-6'>
-              <div className='bg-stone-50 p-4 rounded-3xl border border-stone-200 focus-within:border-stone-800 focus-within:ring-2 focus-within:ring-stone-800 transition-all'>
-                <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1'>
+              <div className='bg-bg-hover p-4 rounded-3xl border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all'>
+                <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1'>
                   Nama Dompet/Bank
                 </label>
                 <input
@@ -301,16 +303,16 @@ export default function AccountsManager() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                   placeholder='Misal: BCA, GoPay...'
-                  className='w-full bg-transparent outline-none font-bold text-stone-800 placeholder:text-stone-300 placeholder:font-normal'
+                  className='w-full bg-transparent outline-none font-bold text-text-primary placeholder:text-text-secondary/50 placeholder:font-normal'
                 />
               </div>
 
-              <div className='bg-stone-50 p-4 rounded-3xl border border-stone-200 focus-within:border-stone-800 focus-within:ring-2 focus-within:ring-stone-800 transition-all'>
-                <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1'>
+              <div className='bg-bg-hover p-4 rounded-3xl border border-border focus-within:border-primary focus-within:ring-2 focus-within:ring-primary/20 transition-all'>
+                <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1'>
                   Saldo Awal Saat Ini
                 </label>
-                <div className='flex items-center font-bold text-stone-800'>
-                  <span className='mr-2 text-stone-400'>Rp</span>
+                <div className='flex items-center font-bold text-text-primary'>
+                  <span className='mr-2 text-text-secondary'>Rp</span>
                   <input
                     type='number'
                     min='0'
@@ -326,7 +328,7 @@ export default function AccountsManager() {
                         e.preventDefault();
                     }}
                     placeholder='0'
-                    className='w-full bg-transparent outline-none placeholder:text-stone-300 placeholder:font-normal'
+                    className='w-full bg-transparent outline-none placeholder:text-text-secondary/50 placeholder:font-normal'
                   />
                 </div>
               </div>
@@ -334,7 +336,7 @@ export default function AccountsManager() {
 
             <button
               onClick={handleAddAccount}
-              className='w-full py-5 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all border-2 border-white/50'
+              className='w-full py-5 bg-gradient-to-r from-primary to-investment text-text-primary font-black rounded-[2rem] shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all border-2 border-primary/20 hover:opacity-90'
             >
               Simpan Dompet
             </button>
@@ -344,15 +346,15 @@ export default function AccountsManager() {
 
       {/* --- MODAL TRANSFER --- */}
       {isTransferModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-stone-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
+        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
+          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 border border-border'>
             <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-stone-800'>
+              <h3 className='font-black text-xl text-text-primary'>
                 Transfer Dana
               </h3>
               <button
                 onClick={() => setIsTransferModalOpen(false)}
-                className='w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200'
+                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
               >
                 <X className='w-5 h-5' />
               </button>
@@ -360,18 +362,18 @@ export default function AccountsManager() {
 
             <div className='space-y-4 mb-4'>
               <div
-                className={`bg-stone-50 p-4 rounded-3xl border transition-all ${isBalanceInsufficient ? 'border-red-400 focus-within:border-red-500 focus-within:ring-red-500' : 'border-stone-200 focus-within:border-stone-800 focus-within:ring-stone-800'} focus-within:ring-2`}
+                className={`bg-bg-hover p-4 rounded-3xl border transition-all ${isBalanceInsufficient ? 'border-expense focus-within:border-expense focus-within:ring-expense/20' : 'border-border focus-within:border-primary focus-within:ring-primary/20'} focus-within:ring-2`}
               >
                 <label
-                  className={`text-[10px] font-black uppercase tracking-wider block mb-1 ${isBalanceInsufficient ? 'text-red-400' : 'text-stone-400'}`}
+                  className={`text-[10px] font-black uppercase tracking-wider block mb-1 ${isBalanceInsufficient ? 'text-expense' : 'text-text-secondary'}`}
                 >
                   Mau transfer berapa?
                 </label>
                 <div
-                  className={`flex items-center font-black text-2xl ${isBalanceInsufficient ? 'text-red-500' : 'text-stone-800'}`}
+                  className={`flex items-center font-black text-2xl ${isBalanceInsufficient ? 'text-expense' : 'text-text-primary'}`}
                 >
                   <span
-                    className={`mr-2 text-lg ${isBalanceInsufficient ? 'text-red-400' : 'text-stone-400'}`}
+                    className={`mr-2 text-lg ${isBalanceInsufficient ? 'text-expense/80' : 'text-text-secondary'}`}
                   >
                     Rp
                   </span>
@@ -390,27 +392,27 @@ export default function AccountsManager() {
                         e.preventDefault();
                     }}
                     placeholder='0'
-                    className={`w-full bg-transparent outline-none placeholder:font-normal ${isBalanceInsufficient ? 'placeholder:text-red-200' : 'placeholder:text-stone-300'}`}
+                    className={`w-full bg-transparent outline-none placeholder:font-normal ${isBalanceInsufficient ? 'placeholder:text-expense/50' : 'placeholder:text-text-secondary/50'}`}
                   />
                 </div>
               </div>
 
               {/* DAERAH PILIH DOMPET */}
-              <div className='flex items-center gap-3 bg-stone-50 p-4 rounded-3xl border border-stone-200'>
+              <div className='flex items-center gap-3 bg-bg-hover p-4 rounded-3xl border border-border'>
                 {/* DARI */}
                 <div
                   onClick={() => setIsTransferFromModalOpen(true)}
                   className='flex-1 cursor-pointer group'
                 >
-                  <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1 group-hover:text-stone-600 transition-colors'>
+                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1 group-hover:text-text-primary transition-colors'>
                     Dari
                   </label>
-                  <div className='font-bold text-stone-800 flex items-center gap-1 text-sm'>
-                    <ChevronDown className='w-4 h-4 text-stone-400' />
+                  <div className='font-bold text-text-primary flex items-center gap-1 text-sm'>
+                    <ChevronDown className='w-4 h-4 text-text-secondary' />
                     <span className='truncate'>{fromAccountObj?.name}</span>
                   </div>
                   <div
-                    className={`text-[10px] font-bold mt-0.5 ${isBalanceInsufficient ? 'text-red-500' : 'text-stone-500'}`}
+                    className={`text-[10px] font-bold mt-0.5 ${isBalanceInsufficient ? 'text-expense' : 'text-text-secondary'}`}
                   >
                     Rp {fromAccountObj?.balance.toLocaleString('id-ID')}
                   </div>
@@ -420,7 +422,7 @@ export default function AccountsManager() {
                 <button
                   type='button'
                   onClick={handleSwapAccounts}
-                  className='w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm flex-shrink-0 hover:scale-110 active:scale-95 transition-all border border-stone-200 text-stone-600 hover:text-stone-900'
+                  className='w-10 h-10 bg-surface rounded-full flex items-center justify-center shadow-sm flex-shrink-0 hover:scale-110 active:scale-95 transition-all border border-border text-text-secondary hover:text-text-primary'
                 >
                   <ArrowRightLeft className='w-4 h-4' />
                 </button>
@@ -430,16 +432,16 @@ export default function AccountsManager() {
                   onClick={() => setIsTransferToModalOpen(true)}
                   className='flex-1 text-right cursor-pointer group flex flex-col items-end'
                 >
-                  <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1 group-hover:text-stone-600 transition-colors'>
+                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1 group-hover:text-text-primary transition-colors'>
                     Ke
                   </label>
-                  <div className='font-bold text-stone-800 flex items-center gap-1 text-sm justify-end'>
-                    <ChevronDown className='w-4 h-4 text-stone-400' />
+                  <div className='font-bold text-text-primary flex items-center gap-1 text-sm justify-end'>
+                    <ChevronDown className='w-4 h-4 text-text-secondary' />
                     <span className='truncate'>
                       {accounts.find((a) => a.id === transferTo)?.name}
                     </span>
                   </div>
-                  <div className='text-[10px] text-stone-500 font-bold mt-0.5'>
+                  <div className='text-[10px] text-text-secondary font-bold mt-0.5'>
                     Rp{' '}
                     {accounts
                       .find((a) => a.id === transferTo)
@@ -452,12 +454,12 @@ export default function AccountsManager() {
             {/* Peringatan Error Inline */}
             <div className='h-6 mb-2'>
               {isBalanceInsufficient && (
-                <p className='text-red-500 text-xs font-bold text-center animate-pulse'>
+                <p className='text-expense text-xs font-bold text-center animate-pulse'>
                   Saldo {fromAccountObj?.name} kurang nih!
                 </p>
               )}
               {isSameAccount && (
-                <p className='text-orange-500 text-xs font-bold text-center animate-pulse'>
+                <p className='text-warning text-xs font-bold text-center animate-pulse'>
                   Masa transfer ke dompet yang sama?
                 </p>
               )}
@@ -466,7 +468,7 @@ export default function AccountsManager() {
             <button
               onClick={handleTransfer}
               disabled={isTransferDisabled}
-              className='w-full py-5 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:from-stone-300 disabled:to-stone-300 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none border-2 border-white/50'
+              className='w-full py-5 bg-gradient-to-r from-primary to-investment text-text-primary font-black rounded-[2rem] shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all disabled:from-bg-hover disabled:to-bg-hover disabled:text-text-secondary/50 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none border-2 border-primary/20 hover:opacity-90'
             >
               Proses Transfer
             </button>
@@ -476,15 +478,15 @@ export default function AccountsManager() {
 
       {/* --- SUB-MODALS PILIH DARI/KE (Sama aja kaya sebelumnya) --- */}
       {isTransferFromModalOpen && (
-        <div className='fixed inset-0 z-[60] flex items-end justify-center bg-stone-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
+        <div className='fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
+          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 border border-border'>
             <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-stone-800'>
+              <h3 className='font-black text-xl text-text-primary'>
                 Transfer Dari
               </h3>
               <button
                 onClick={() => setIsTransferFromModalOpen(false)}
-                className='w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200'
+                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
               >
                 <X className='w-5 h-5' />
               </button>
@@ -494,11 +496,11 @@ export default function AccountsManager() {
                 <button
                   key={acc.id}
                   onClick={() => handleSelectTransferFrom(acc.id)}
-                  className={`w-full flex justify-between items-center p-4 rounded-2xl text-left transition-colors border ${transferFrom === acc.id ? 'bg-stone-800 text-white border-stone-800' : 'bg-stone-50 text-stone-700 border-transparent hover:border-stone-200'}`}
+                  className={`w-full flex justify-between items-center p-4 rounded-2xl text-left transition-colors border ${transferFrom === acc.id ? 'bg-primary text-text-primary border-primary' : 'bg-bg-hover text-text-primary border-transparent hover:border-border'}`}
                 >
                   <span className='font-bold'>{acc.name}</span>
                   <span
-                    className={`text-sm font-bold ${transferFrom === acc.id ? 'text-stone-300' : 'text-stone-500'}`}
+                    className={`text-sm font-bold ${transferFrom === acc.id ? 'text-text-primary/70' : 'text-text-secondary'}`}
                   >
                     Rp {acc.balance.toLocaleString('id-ID')}
                   </span>
@@ -510,13 +512,15 @@ export default function AccountsManager() {
       )}
 
       {isTransferToModalOpen && (
-        <div className='fixed inset-0 z-[60] flex items-end justify-center bg-stone-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
+        <div className='fixed inset-0 z-[60] flex items-end justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
+          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 border border-border'>
             <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-stone-800'>Transfer Ke</h3>
+              <h3 className='font-black text-xl text-text-primary'>
+                Transfer Ke
+              </h3>
               <button
                 onClick={() => setIsTransferToModalOpen(false)}
-                className='w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200'
+                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
               >
                 <X className='w-5 h-5' />
               </button>
@@ -526,11 +530,11 @@ export default function AccountsManager() {
                 <button
                   key={acc.id}
                   onClick={() => handleSelectTransferTo(acc.id)}
-                  className={`w-full flex justify-between items-center p-4 rounded-2xl text-left transition-colors border ${transferTo === acc.id ? 'bg-stone-800 text-white border-stone-800' : 'bg-stone-50 text-stone-700 border-transparent hover:border-stone-200'}`}
+                  className={`w-full flex justify-between items-center p-4 rounded-2xl text-left transition-colors border ${transferTo === acc.id ? 'bg-primary text-text-primary border-primary' : 'bg-bg-hover text-text-primary border-transparent hover:border-border'}`}
                 >
                   <span className='font-bold'>{acc.name}</span>
                   <span
-                    className={`text-sm font-bold ${transferTo === acc.id ? 'text-stone-300' : 'text-stone-500'}`}
+                    className={`text-sm font-bold ${transferTo === acc.id ? 'text-text-primary/70' : 'text-text-secondary'}`}
                   >
                     Rp {acc.balance.toLocaleString('id-ID')}
                   </span>

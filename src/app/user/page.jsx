@@ -175,7 +175,7 @@ export default function UserPage() {
     const content = (
       <button
         onClick={onClick}
-        className={`w-full flex items-center justify-between p-4 bg-white dark:bg-stone-800 hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-colors text-left ${!isLast ? 'border-b border-stone-100 dark:border-stone-700/50' : ''}`}
+        className={`w-full flex items-center justify-between p-4 bg-surface hover:bg-surface-hover transition-colors text-left ${!isLast ? 'border-b border-border' : ''}`}
       >
         <div className='flex items-center gap-4'>
           <div
@@ -183,11 +183,11 @@ export default function UserPage() {
           >
             <Icon className={`w-5 h-5 ${color}`} />
           </div>
-          <span className='font-bold text-[15px] text-stone-700 dark:text-stone-200'>
+          <span className='font-bold text-[15px] text-text-primary'>
             {title}
           </span>
         </div>
-        <ChevronRight className='w-5 h-5 text-stone-300 dark:text-stone-500' />
+        <ChevronRight className='w-5 h-5 text-text-secondary' />
       </button>
     );
     return href ? (
@@ -200,28 +200,28 @@ export default function UserPage() {
   };
 
   return (
-    <main className='min-h-screen bg-[#F4F4F5] dark:bg-[#121212] p-6 max-w-md mx-auto pb-24 relative overflow-x-hidden transition-colors duration-300 font-sans'>
+    <main className='min-h-screen bg-bg p-6 max-w-md mx-auto pb-24 relative overflow-x-hidden transition-colors duration-300 font-sans'>
       {/* HEADER */}
       <header className='flex items-center justify-between mb-8 pt-2'>
         <div className='flex items-center gap-4'>
           <button
             onClick={() => router.back()}
-            className='w-11 h-11 bg-white dark:bg-stone-800 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] dark:shadow-none border border-stone-100 dark:border-stone-700 hover:bg-stone-50 transition-colors'
+            className='w-11 h-11 bg-surface rounded-full flex items-center justify-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] dark:shadow-none border border-border hover:bg-bg-hover transition-colors'
           >
-            <ArrowLeft className='w-5 h-5 text-stone-700 dark:text-stone-200' />
+            <ArrowLeft className='w-5 h-5 text-text-primary' />
           </button>
-          <h1 className='text-xl font-black text-stone-800 dark:text-stone-100 tracking-tight'>
+          <h1 className='text-xl font-black text-text-primary tracking-tight'>
             Profil Anda
           </h1>
         </div>
         <button
           onClick={handleThemeToggle}
-          className='w-11 h-11 bg-white dark:bg-stone-800 rounded-full flex items-center justify-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] dark:shadow-none border border-stone-100 dark:border-stone-700 transition-colors'
+          className='w-11 h-11 bg-surface rounded-full flex items-center justify-center shadow-[0_2px_8px_rgb(0,0,0,0.04)] dark:shadow-none border border-border transition-colors'
         >
           {theme === 'light' ? (
-            <Moon className='w-5 h-5 text-stone-600' />
+            <Moon className='w-5 h-5 text-text-secondary' />
           ) : (
-            <Sun className='w-5 h-5 text-amber-400' />
+            <Sun className='w-5 h-5 text-warning' />
           )}
         </button>
       </header>
@@ -241,21 +241,21 @@ export default function UserPage() {
       )}
 
       {/* SECTION 1: PROFIL CARD MODERN */}
-      <section className='bg-white dark:bg-stone-800 p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-stone-100 dark:border-stone-700 mb-8 transition-colors relative overflow-hidden'>
+      <section className='bg-surface p-6 rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-border mb-8 transition-colors relative overflow-hidden'>
         {/* Dekorasi Gradient Bias */}
         <div className='absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/20 dark:to-purple-900/20 rounded-full blur-3xl -mr-10 -mt-10 opacity-60'></div>
 
         <div className='flex items-start justify-between mb-5 relative z-10'>
-          <div className='w-20 h-20 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full p-1 shadow-md'>
-            <div className='w-full h-full bg-white dark:bg-stone-800 rounded-full flex items-center justify-center border-2 border-white dark:border-stone-800'>
-              <User className='w-8 h-8 text-indigo-500 dark:text-indigo-400' />
+          <div className='w-20 h-20 bg-gradient-to-tr from-investment to-primary rounded-full p-1 shadow-md'>
+            <div className='w-full h-full bg-surface rounded-full flex items-center justify-center border-2 border-surface'>
+              <User className='w-8 h-8 text-investment' />
             </div>
           </div>
           <button
             onClick={() =>
               isEditing ? handleSaveProfile() : setIsEditing(true)
             }
-            className={`px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm ${isEditing ? 'bg-indigo-600 text-white hover:bg-indigo-700' : 'bg-stone-100 dark:bg-stone-700 text-stone-700 dark:text-stone-200 hover:bg-stone-200'}`}
+            className={`px-5 py-2.5 rounded-full text-xs font-bold flex items-center gap-1.5 transition-all shadow-sm ${isEditing ? 'bg-primary text-text-primary hover:bg-primary-hover' : 'bg-bg-hover text-text-primary hover:bg-surface'}`}
           >
             {isEditing ? (
               <>
@@ -271,8 +271,8 @@ export default function UserPage() {
 
         {isEditing ? (
           <div className='space-y-4 relative z-10'>
-            <div className='bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-3.5 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
-              <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-1'>
+            <div className='bg-surface/50 rounded-2xl p-3.5 border border-border focus-within:border-primary transition-colors'>
+              <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
                 Nama Panggilan
               </label>
               <input
@@ -281,11 +281,11 @@ export default function UserPage() {
                 onChange={(e) =>
                   setProfile({ ...profile, name: e.target.value })
                 }
-                className='w-full bg-transparent outline-none font-bold text-stone-800 dark:text-white text-lg'
+                className='w-full bg-transparent outline-none font-bold text-text-primary text-lg'
               />
             </div>
-            <div className='bg-stone-50 dark:bg-stone-900/50 rounded-2xl p-3.5 border border-stone-200 dark:border-stone-700 focus-within:border-indigo-500 transition-colors'>
-              <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-1'>
+            <div className='bg-surface/50 rounded-2xl p-3.5 border border-border focus-within:border-primary transition-colors'>
+              <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
                 Target / Bio
               </label>
               <textarea
@@ -294,16 +294,16 @@ export default function UserPage() {
                   setProfile({ ...profile, bio: e.target.value })
                 }
                 rows='2'
-                className='w-full bg-transparent outline-none font-medium text-stone-600 dark:text-stone-300 resize-none'
+                className='w-full bg-transparent outline-none font-medium text-text-secondary resize-none'
               />
             </div>
           </div>
         ) : (
           <div className='relative z-10 mt-2'>
-            <h2 className='text-2xl font-black text-stone-800 dark:text-white mb-1.5 tracking-tight'>
+            <h2 className='text-2xl font-black text-text-primary mb-1.5 tracking-tight'>
               {profile.name}
             </h2>
-            <p className='text-stone-500 dark:text-stone-400 text-sm font-medium leading-relaxed'>
+            <p className='text-text-secondary text-sm font-medium leading-relaxed'>
               {profile.bio}
             </p>
           </div>
@@ -311,26 +311,26 @@ export default function UserPage() {
       </section>
 
       {/* SECTION 2: DATA & PENYIMPANAN */}
-      <h3 className='text-xs font-black text-stone-400 dark:text-stone-500 uppercase tracking-widest px-3 mb-3 flex items-center gap-2'>
+      <h3 className='text-xs font-black text-text-secondary uppercase tracking-widest px-3 mb-3 flex items-center gap-2'>
         <Database className='w-3.5 h-3.5' /> Manajemen Data
       </h3>
-      <section className='bg-white dark:bg-stone-800 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-stone-100 dark:border-stone-700 mb-8 overflow-hidden flex divide-x divide-stone-100 dark:divide-stone-700'>
+      <section className='bg-surface rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-border mb-8 overflow-hidden flex divide-x divide-border'>
         <button
           onClick={handleExportData}
-          className='flex-1 p-6 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-all group'
+          className='flex-1 p-6 flex flex-col items-center justify-center gap-3 hover:bg-surface-hover transition-all group'
         >
-          <div className='w-14 h-14 bg-sky-50 dark:bg-sky-500/10 rounded-2xl flex items-center justify-center group-hover:-translate-y-1 transition-transform duration-300'>
-            <Download className='w-6 h-6 text-sky-600 dark:text-sky-400' />
+          <div className='w-14 h-14 bg-investment/10 rounded-2xl flex items-center justify-center group-hover:-translate-y-1 transition-transform duration-300'>
+            <Download className='w-6 h-6 text-investment' />
           </div>
-          <span className='font-bold text-sm text-stone-700 dark:text-stone-200'>
+          <span className='font-bold text-sm text-text-primary'>
             Backup Data
           </span>
         </button>
-        <label className='flex-1 p-6 flex flex-col items-center justify-center gap-3 hover:bg-stone-50 dark:hover:bg-stone-700/50 transition-all cursor-pointer group'>
-          <div className='w-14 h-14 bg-emerald-50 dark:bg-emerald-500/10 rounded-2xl flex items-center justify-center group-hover:-translate-y-1 transition-transform duration-300'>
-            <Upload className='w-6 h-6 text-emerald-600 dark:text-emerald-400' />
+        <label className='flex-1 p-6 flex flex-col items-center justify-center gap-3 hover:bg-surface-hover transition-all cursor-pointer group'>
+          <div className='w-14 h-14 bg-income/10 rounded-2xl flex items-center justify-center group-hover:-translate-y-1 transition-transform duration-300'>
+            <Upload className='w-6 h-6 text-income' />
           </div>
-          <span className='font-bold text-sm text-stone-700 dark:text-stone-200'>
+          <span className='font-bold text-sm text-text-primary'>
             Import Data
           </span>
           <input
@@ -343,51 +343,51 @@ export default function UserPage() {
       </section>
 
       {/* SECTION 3: MENU EKSTRA */}
-      <h3 className='text-xs font-black text-stone-400 dark:text-stone-500 uppercase tracking-widest px-3 mb-3 flex items-center gap-2'>
+      <h3 className='text-xs font-black text-text-secondary uppercase tracking-widest px-3 mb-3 flex items-center gap-2'>
         <Settings className='w-3.5 h-3.5' /> Preferensi & Bantuan
       </h3>
-      <section className='bg-white dark:bg-stone-800 rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-stone-100 dark:border-stone-700 overflow-hidden mb-10'>
+      <section className='bg-surface rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-none border border-border overflow-hidden mb-10'>
         <MenuLink
           onClick={() => setActiveMenuModal('about')}
           icon={Info}
           title='Tentang Aplikasi'
-          bg='bg-blue-50 dark:bg-blue-500/10'
-          color='text-blue-600 dark:text-blue-400'
+          bg='bg-primary/5'
+          color='text-primary'
         />
         <MenuLink
           onClick={() => setActiveMenuModal('privacy')}
           icon={Shield}
           title='Kebijakan Privasi'
-          bg='bg-stone-100 dark:bg-stone-700'
-          color='text-stone-600 dark:text-stone-300'
+          bg='bg-bg-hover'
+          color='text-text-secondary'
         />
         <MenuLink
           onClick={() => setActiveMenuModal('faq')}
           icon={HelpCircle}
           title='Bantuan & FAQ'
-          bg='bg-indigo-50 dark:bg-indigo-500/10'
-          color='text-indigo-600 dark:text-indigo-400'
+          bg='bg-primary/5'
+          color='text-primary'
         />
         <MenuLink
           href='https://forms.gle/YOUR_FORM_LINK'
           icon={MessageSquare}
           title='Kirim Feedback'
-          bg='bg-purple-50 dark:bg-purple-500/10'
-          color='text-purple-600 dark:text-purple-400'
+          bg='bg-primary/5'
+          color='text-primary'
         />
         <MenuLink
           onClick={() => setActiveMenuModal('developer')}
           icon={Code}
           title='Pengembang Aplikasi'
-          bg='bg-stone-800 dark:bg-stone-700'
-          color='text-white dark:text-stone-200'
+          bg='bg-primary'
+          color='text-text-primary'
         />
         <MenuLink
           onClick={() => setActiveMenuModal('coffee')}
           icon={Coffee}
           title='Traktir Kopi ☕'
-          bg='bg-amber-50 dark:bg-amber-500/10'
-          color='text-amber-600 dark:text-amber-400'
+          bg='bg-income/5'
+          color='text-income'
           isLast={true}
         />
       </section>
@@ -395,16 +395,16 @@ export default function UserPage() {
       {/* DANGER ZONE */}
       <button
         onClick={() => setIsDeleteModalOpen(true)}
-        className='w-full bg-white dark:bg-stone-800 p-5 rounded-3xl border border-red-100 dark:border-red-900/30 shadow-sm flex items-center justify-center gap-3 hover:bg-red-50 dark:hover:bg-red-900/20 transition-all group'
+        className='w-full bg-surface p-5 rounded-3xl border border-expense/30 shadow-sm flex items-center justify-center gap-3 hover:bg-surface-hover transition-all group'
       >
-        <Trash2 className='w-5 h-5 text-red-500 dark:text-red-400 group-hover:scale-110 transition-transform' />
-        <span className='font-bold text-red-500 dark:text-red-400 text-[15px]'>
+        <Trash2 className='w-5 h-5 text-expense group-hover:scale-110 transition-transform' />
+        <span className='font-bold text-expense text-[15px]'>
           Hapus Data Aplikasi
         </span>
       </button>
 
       <div className='text-center mt-10'>
-        <p className='text-stone-400 dark:text-stone-600 text-[10px] font-black uppercase tracking-widest'>
+        <p className='text-text-secondary text-[10px] font-black uppercase tracking-widest'>
           Catat Dulu Ygy • v1.0.0
         </p>
       </div>
@@ -412,16 +412,16 @@ export default function UserPage() {
       {/* --- MODAL MULTIGUNA UNTUK MENU (DRAWER DI MOBILE, POPUP DI PC) --- */}
       {activeMenuModal && (
         <div
-          className='fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-stone-900/40 dark:bg-black/60 backdrop-blur-sm animate-in fade-in'
+          className='fixed inset-0 z-[100] flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in'
           onClick={() => setActiveMenuModal(null)}
         >
           <div
-            className='bg-white dark:bg-[#1A1A1A] w-full max-w-md max-h-[85vh] flex flex-col rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl animate-in slide-in-from-bottom-10 md:zoom-in-95 overflow-hidden border border-stone-100 dark:border-stone-800'
+            className='bg-bg w-full max-w-md max-h-[85vh] flex flex-col rounded-t-[2.5rem] md:rounded-[2.5rem] shadow-2xl animate-in slide-in-from-bottom-10 md:zoom-in-95 overflow-hidden border border-border'
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header */}
-            <div className='p-6 pb-4 border-b border-stone-100 dark:border-stone-800 flex justify-between items-center bg-white/50 dark:bg-transparent backdrop-blur-md'>
-              <h3 className='font-black text-xl text-stone-800 dark:text-white capitalize tracking-tight'>
+            <div className='p-6 pb-4 border-b border-border flex justify-between items-center bg-transparent backdrop-blur-md'>
+              <h3 className='font-black text-xl text-text-primary capitalize tracking-tight'>
                 {activeMenuModal === 'about' && 'Tentang Aplikasi'}
                 {activeMenuModal === 'privacy' && 'Kebijakan Privasi'}
                 {activeMenuModal === 'faq' && 'Bantuan & FAQ'}
@@ -430,9 +430,9 @@ export default function UserPage() {
               </h3>
               <button
                 onClick={() => setActiveMenuModal(null)}
-                className='p-2.5 bg-stone-100 dark:bg-stone-800 rounded-full hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors'
+                className='p-2.5 bg-surface rounded-full hover:bg-surface-hover transition-colors'
               >
-                <X className='w-5 h-5 text-stone-600 dark:text-stone-300' />
+                <X className='w-5 h-5 text-text-primary' />
               </button>
             </div>
 
@@ -440,17 +440,17 @@ export default function UserPage() {
             <div className='p-6 overflow-y-auto'>
               {/* KONTEN: TENTANG APLIKASI */}
               {activeMenuModal === 'about' && (
-                <div className='space-y-4 text-stone-600 dark:text-stone-300 text-[15px] leading-relaxed'>
-                  <div className='w-20 h-20 bg-stone-800 dark:bg-stone-700 rounded-3xl mx-auto flex items-center justify-center mb-5 shadow-lg shadow-stone-800/20'>
-                    <Database className='w-10 h-10 text-white' />
+                <div className='space-y-4 text-text-secondary text-[15px] leading-relaxed'>
+                  <div className='w-20 h-20 bg-primary/10 rounded-3xl mx-auto flex items-center justify-center mb-5 shadow-lg shadow-primary/5'>
+                    <Database className='w-10 h-10 text-primary' />
                   </div>
-                  <h4 className='font-black text-center text-xl text-stone-800 dark:text-white'>
+                  <h4 className='font-black text-center text-xl text-text-primary'>
                     Catat Dulu Ygy
                   </h4>
-                  <p className='text-center text-stone-400 text-xs font-bold tracking-widest uppercase mb-6'>
+                  <p className='text-center text-text-secondary/70 text-xs font-bold tracking-widest uppercase mb-6'>
                     Versi 1.0.0 (Local Build)
                   </p>
-                  <div className='bg-stone-50 dark:bg-stone-800/50 p-5 rounded-3xl space-y-3'>
+                  <div className='bg-bg p-5 rounded-3xl space-y-3'>
                     <p>
                       Aplikasi super ringan untuk menyederhanakan cara mahasiswa
                       melacak pengeluarannya.
@@ -461,7 +461,7 @@ export default function UserPage() {
                       tanpa server, tanpa lemot.
                     </p>
                   </div>
-                  <p className='text-center mt-6 flex items-center justify-center gap-1.5 font-bold text-stone-500'>
+                  <p className='text-center mt-6 flex items-center justify-center gap-1.5 font-bold text-text-secondary/70'>
                     Dibuat dengan{' '}
                     <Heart className='w-4 h-4 text-red-500 fill-red-500' /> &
                     Kopi.
@@ -471,9 +471,9 @@ export default function UserPage() {
 
               {/* KONTEN: KEBIJAKAN PRIVASI */}
               {activeMenuModal === 'privacy' && (
-                <div className='space-y-6 text-stone-600 dark:text-stone-300 text-sm leading-relaxed'>
-                  <div className='bg-stone-50 dark:bg-stone-800/50 p-5 rounded-3xl'>
-                    <h4 className='font-black text-stone-800 dark:text-white mb-2 text-base flex items-center gap-2'>
+                <div className='space-y-6 text-text-secondary text-sm leading-relaxed'>
+                  <div className='bg-bg p-5 rounded-3xl'>
+                    <h4 className='font-black text-text-primary mb-2 text-base flex items-center gap-2'>
                       <Database className='w-4 h-4 text-blue-500' /> Penyimpanan
                       Lokal
                     </h4>
@@ -484,8 +484,8 @@ export default function UserPage() {
                       tersebut.
                     </p>
                   </div>
-                  <div className='bg-stone-50 dark:bg-stone-800/50 p-5 rounded-3xl'>
-                    <h4 className='font-black text-stone-800 dark:text-white mb-2 text-base flex items-center gap-2'>
+                  <div className='bg-bg p-5 rounded-3xl'>
+                    <h4 className='font-black text-text-primary mb-2 text-base flex items-center gap-2'>
                       <Code className='w-4 h-4 text-purple-500' /> Fitur AI
                       Scanner
                     </h4>
@@ -495,8 +495,8 @@ export default function UserPage() {
                       di server kami.
                     </p>
                   </div>
-                  <div className='bg-stone-50 dark:bg-stone-800/50 p-5 rounded-3xl'>
-                    <h4 className='font-black text-stone-800 dark:text-white mb-2 text-base flex items-center gap-2'>
+                  <div className='bg-bg p-5 rounded-3xl'>
+                    <h4 className='font-black text-text-primary mb-2 text-base flex items-center gap-2'>
                       <Shield className='w-4 h-4 text-emerald-500' /> Tanggung
                       Jawab
                     </h4>
@@ -514,7 +514,7 @@ export default function UserPage() {
                 <div className='text-center'>
                   <div className='relative inline-block mb-4'>
                     <div className='absolute inset-0 bg-gradient-to-tr from-blue-500 to-purple-500 rounded-full blur-md opacity-50'></div>
-                    <div className='w-32 h-32 relative overflow-hidden rounded-full border-4 border-white dark:border-stone-800 shadow-xl bg-stone-100 z-10'>
+                    <div className='w-32 h-32 relative overflow-hidden rounded-full border-4 border-bg shadow-xl bg-bg-hover z-10'>
                       <img
                         src='/developer-profile.png'
                         alt='Developer'
@@ -527,14 +527,14 @@ export default function UserPage() {
                     </div>
                   </div>
 
-                  <h4 className='font-black text-2xl text-stone-800 dark:text-white mb-1 tracking-tight'>
+                  <h4 className='font-black text-2xl text-text-primary mb-1 tracking-tight'>
                     Nama Kamu
                   </h4>
-                  <div className='inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-6 border border-blue-100 dark:border-blue-900/50'>
+                  <div className='inline-flex items-center gap-1.5 bg-primary/5 text-primary px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest mb-6 border border-primary/20'>
                     S1 Rekayasa Perangkat Lunak
                   </div>
 
-                  <p className='text-sm text-stone-600 dark:text-stone-300 leading-relaxed bg-stone-50 dark:bg-stone-800/50 p-5 rounded-3xl mb-6'>
+                  <p className='text-sm text-text-secondary leading-relaxed bg-bg p-5 rounded-3xl mb-6'>
                     Membangun aplikasi ini sepenuh hati buat bantu nyelesain
                     masalah anak kosan. Kalau nemu bug atau punya ide fitur
                     gila, sapa aku aja!
@@ -543,13 +543,13 @@ export default function UserPage() {
                   <div className='flex justify-center gap-4'>
                     <a
                       href='#'
-                      className='w-12 h-12 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors'
+                      className='w-12 h-12 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
                     >
                       <Github className='w-5 h-5' />
                     </a>
                     <a
                       href='#'
-                      className='w-12 h-12 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-600 dark:text-stone-300 hover:bg-stone-200 dark:hover:bg-stone-700 transition-colors'
+                      className='w-12 h-12 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
                     >
                       <Instagram className='w-5 h-5' />
                     </a>
@@ -560,15 +560,15 @@ export default function UserPage() {
               {/* KONTEN: TRAKTIR KOPI (Premium UI) */}
               {activeMenuModal === 'coffee' && (
                 <div className='text-center'>
-                  <h4 className='font-black text-2xl text-stone-800 dark:text-white mb-3 tracking-tight'>
+                  <h4 className='font-black text-2xl text-text-primary mb-3 tracking-tight'>
                     Support Server... eh Perut! ☕
                   </h4>
-                  <p className='text-sm text-stone-600 dark:text-stone-400 mb-8 leading-relaxed px-2'>
+                  <p className='text-sm text-text-secondary mb-8 leading-relaxed px-2'>
                     Walau app ini gratis & jalan lokal, ngodingnya tetep butuh
                     kalori. Scan QRIS di bawah buat support jajan developer! 🚀
                   </p>
 
-                  <div className='bg-white dark:bg-white p-5 rounded-[2.5rem] shadow-xl inline-block mb-8 border-[6px] border-stone-50 dark:border-stone-800'>
+                  <div className='bg-white p-5 rounded-[2.5rem] shadow-xl inline-block mb-8 border-[6px] border-bg-hover'>
                     <img
                       src='/qris-donasi.jpeg'
                       alt='QRIS Donasi'
@@ -576,7 +576,7 @@ export default function UserPage() {
                       onError={(e) => {
                         e.target.style.display = 'none';
                         e.target.parentElement.innerHTML =
-                          '<div class="w-56 h-56 flex items-center justify-center text-sm font-bold text-stone-400 text-center">Gambar qris-donasi.jpeg<br/>belum ada di folder public</div>';
+                          '<div class="w-56 h-56 flex items-center justify-center text-sm font-bold text-text-secondary text-center">Gambar qris-donasi.jpeg<br/>belum ada di folder public</div>';
                       }}
                     />
                   </div>
@@ -598,15 +598,15 @@ export default function UserPage() {
 
       {/* MODAL HAPUS DATA DINAMIS */}
       {isDeleteModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-end md:items-center justify-center bg-stone-900/40 dark:bg-black/60 backdrop-blur-sm p-4 animate-in fade-in'>
-          <div className='bg-white dark:bg-[#1A1A1A] w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 md:zoom-in-95 border border-stone-100 dark:border-stone-800'>
+        <div className='fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in'>
+          <div className='bg-bg w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 md:zoom-in-95 border border-border'>
             <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-stone-800 dark:text-white flex items-center gap-2'>
-                <AlertTriangle className='w-6 h-6 text-red-500' /> Hapus Data
+              <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                <AlertTriangle className='w-6 h-6 text-expense' /> Hapus Data
               </h3>
               <button
                 onClick={() => setIsDeleteModalOpen(false)}
-                className='w-10 h-10 bg-stone-100 dark:bg-stone-800 rounded-full flex items-center justify-center text-stone-500 dark:text-stone-300'
+                className='w-10 h-10 bg-surface rounded-full flex items-center justify-center text-text-secondary'
               >
                 <X className='w-5 h-5' />
               </button>
@@ -614,7 +614,7 @@ export default function UserPage() {
 
             <div className='space-y-4 mb-8'>
               <label
-                className={`flex items-start gap-4 p-5 border-2 rounded-3xl cursor-pointer transition-all ${deleteType === 'all' ? 'border-red-500 bg-red-50 dark:bg-red-500/10' : 'border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-800/50'}`}
+                className={`flex items-start gap-4 p-5 border-2 rounded-3xl cursor-pointer transition-all ${deleteType === 'all' ? 'border-expense bg-expense/10' : 'border-border bg-surface/50'}`}
               >
                 <input
                   type='radio'
@@ -625,18 +625,18 @@ export default function UserPage() {
                 />
                 <div>
                   <div
-                    className={`font-black text-[15px] mb-1 ${deleteType === 'all' ? 'text-red-700 dark:text-red-400' : 'text-stone-700 dark:text-stone-200'}`}
+                    className={`font-black text-[15px] mb-1 ${deleteType === 'all' ? 'text-expense' : 'text-text-primary'}`}
                   >
                     Hapus Data Keseluruhan
                   </div>
-                  <div className='text-sm text-stone-500 dark:text-stone-400 leading-relaxed'>
+                  <div className='text-sm text-text-secondary leading-relaxed'>
                     Semua dompet, profil, dan history akan hilang selamanya.
                   </div>
                 </div>
               </label>
 
               <label
-                className={`flex items-start gap-4 p-5 border-2 rounded-3xl cursor-pointer transition-all ${deleteType === 'transactions' ? 'border-orange-500 bg-orange-50 dark:bg-orange-500/10' : 'border-stone-100 dark:border-stone-800 bg-white dark:bg-stone-800/50'}`}
+                className={`flex items-start gap-4 p-5 border-2 rounded-3xl cursor-pointer transition-all ${deleteType === 'transactions' ? 'border-warning bg-warning/10' : 'border-border bg-surface/50'}`}
               >
                 <input
                   type='radio'
@@ -647,20 +647,20 @@ export default function UserPage() {
                 />
                 <div className='w-full'>
                   <div
-                    className={`font-black text-[15px] mb-1 ${deleteType === 'transactions' ? 'text-orange-700 dark:text-orange-400' : 'text-stone-700 dark:text-stone-200'}`}
+                    className={`font-black text-[15px] mb-1 ${deleteType === 'transactions' ? 'text-warning' : 'text-text-primary'}`}
                   >
                     Hapus Data Transaksi Saja
                   </div>
-                  <div className='text-sm text-stone-500 dark:text-stone-400 leading-relaxed mb-4'>
+                  <div className='text-sm text-text-secondary leading-relaxed mb-4'>
                     Saldo dompet aman, hanya history riwayat yang dibersihkan.
                   </div>
 
                   {deleteType === 'transactions' && (
-                    <div className='bg-white dark:bg-stone-900 rounded-2xl border border-stone-200 dark:border-stone-700 p-3 text-sm'>
+                    <div className='bg-bg rounded-2xl border border-border p-3 text-sm'>
                       <select
                         value={deleteRange}
                         onChange={(e) => setDeleteRange(e.target.value)}
-                        className='w-full bg-transparent outline-none font-bold text-stone-700 dark:text-stone-300 mb-2 py-1 cursor-pointer'
+                        className='w-full bg-transparent outline-none font-bold text-text-primary mb-2 py-1 cursor-pointer'
                       >
                         <option value='all'>Bersihkan Semua Waktu</option>
                         <option value='month'>Pilih Bulan Tertentu</option>
@@ -671,7 +671,7 @@ export default function UserPage() {
                           type='month'
                           value={deleteMonth}
                           onChange={(e) => setDeleteMonth(e.target.value)}
-                          className='w-full bg-stone-100 dark:bg-stone-800 p-3 rounded-xl outline-none text-stone-800 dark:text-white font-medium mt-2'
+                          className='w-full bg-surface p-3 rounded-xl outline-none text-text-primary font-medium mt-2'
                         />
                       )}
                     </div>
@@ -682,7 +682,7 @@ export default function UserPage() {
 
             <button
               onClick={handleExecuteDelete}
-              className='w-full py-4.5 bg-red-600 text-white font-black text-[15px] rounded-2xl shadow-[0_8px_20px_rgb(220,38,38,0.25)] hover:bg-red-700 transition-all active:scale-95'
+              className='w-full py-4.5 bg-expense text-text-primary font-black text-[15px] rounded-2xl shadow-[0_8px_20px_rgb(220,38,38,0.25)] hover:opacity-90 transition-all active:scale-95'
             >
               Eksekusi Penghapusan
             </button>

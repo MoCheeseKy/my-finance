@@ -84,23 +84,25 @@ export default function SavingsPage() {
     }).format(num || 0);
 
   return (
-    <main className='min-h-screen bg-[#FAFAF9] pb-28 relative'>
-      <div className='absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-blue-100/50 to-transparent z-0'></div>
+    <main className='min-h-screen bg-bg pb-28 relative transition-colors duration-300'>
+      <div className='absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-surface/80 to-transparent z-0'></div>
 
       <div className='relative z-10 p-6 max-w-md mx-auto'>
         <header className='flex justify-between items-center mb-8 pt-2'>
           <div className='flex items-center gap-4'>
             <button
               onClick={() => router.back()}
-              className='w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-stone-200'
+              className='w-10 h-10 bg-surface rounded-2xl flex items-center justify-center shadow-sm border border-border hover:bg-surface-hover transition-colors'
             >
-              <ArrowLeft className='w-5 h-5 text-stone-800' />
+              <ArrowLeft className='w-5 h-5 text-text-primary' />
             </button>
-            <h1 className='text-xl font-black text-stone-800'>Saving Plan</h1>
+            <h1 className='text-xl font-black text-text-primary'>
+              Saving Plan
+            </h1>
           </div>
           <button
             onClick={() => setShowAddModal(true)}
-            className='w-10 h-10 bg-stone-800 rounded-2xl flex items-center justify-center shadow-lg text-white'
+            className='w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg text-text-primary hover:opacity-90 transition-opacity'
           >
             <Plus className='w-5 h-5' />
           </button>
@@ -109,9 +111,9 @@ export default function SavingsPage() {
         {/* --- LIST SAVING PLANS --- */}
         <div className='space-y-6'>
           {savings.length === 0 ? (
-            <div className='text-center py-20 bg-white rounded-[2.5rem] border-2 border-dashed border-stone-200'>
-              <Target className='w-12 h-12 text-stone-200 mx-auto mb-4' />
-              <p className='text-stone-400 font-bold'>
+            <div className='text-center py-20 bg-surface rounded-[2.5rem] border-2 border-dashed border-border'>
+              <Target className='w-12 h-12 text-text-secondary/30 mx-auto mb-4' />
+              <p className='text-text-secondary font-bold'>
                 Belum ada target? <br />
                 Mimpi aja dulu, catat kemudian!
               </p>
@@ -130,20 +132,20 @@ export default function SavingsPage() {
 
       {/* --- MODAL TAMBAH TARGET --- */}
       {showAddModal && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-stone-900/60 backdrop-blur-sm p-4'>
-          <div className='bg-white w-full max-w-md rounded-[2.5rem] p-8 animate-in slide-in-from-bottom-20 duration-300'>
-            <h3 className='text-xl font-black text-stone-800 mb-6'>
+        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4'>
+          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-8 animate-in slide-in-from-bottom-20 duration-300 border border-border'>
+            <h3 className='text-xl font-black text-text-primary mb-6'>
               Set New Target
             </h3>
             <div className='space-y-4'>
               <div>
-                <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1'>
+                <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1'>
                   Nama Keinginan
                 </label>
                 <input
                   type='text'
                   placeholder='Misal: iPhone 17 Pro Max'
-                  className='w-full bg-stone-50 border border-stone-200 p-4 rounded-2xl font-bold outline-none focus:border-stone-800'
+                  className='w-full bg-bg-hover border border-border p-4 rounded-2xl font-bold outline-none focus:border-primary text-text-primary'
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
@@ -152,13 +154,13 @@ export default function SavingsPage() {
               </div>
               <div className='grid grid-cols-2 gap-3'>
                 <div>
-                  <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1'>
+                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1'>
                     Target Dana
                   </label>
                   <input
                     type='number'
                     placeholder='Rp'
-                    className='w-full bg-stone-50 border border-stone-200 p-4 rounded-2xl font-bold outline-none'
+                    className='w-full bg-bg-hover border border-border p-4 rounded-2xl font-bold outline-none text-text-primary focus:border-primary transition-colors'
                     value={formData.targetAmount}
                     onChange={(e) =>
                       setFormData({ ...formData, targetAmount: e.target.value })
@@ -166,13 +168,13 @@ export default function SavingsPage() {
                   />
                 </div>
                 <div>
-                  <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1'>
+                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1'>
                     Tabungan Awal
                   </label>
                   <input
                     type='number'
                     placeholder='Rp'
-                    className='w-full bg-stone-50 border border-stone-200 p-4 rounded-2xl font-bold outline-none'
+                    className='w-full bg-bg-hover border border-border p-4 rounded-2xl font-bold outline-none text-text-primary focus:border-primary transition-colors'
                     value={formData.currentAmount}
                     onChange={(e) =>
                       setFormData({
@@ -184,12 +186,12 @@ export default function SavingsPage() {
                 </div>
               </div>
               <div>
-                <label className='text-[10px] font-black text-stone-400 uppercase tracking-widest ml-1'>
+                <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest ml-1'>
                   Deadline Pencapaian
                 </label>
                 <input
                   type='date'
-                  className='w-full bg-stone-50 border border-stone-200 p-4 rounded-2xl font-bold outline-none'
+                  className='w-full bg-bg-hover border border-border p-4 rounded-2xl font-bold outline-none text-text-primary focus:border-primary transition-colors'
                   value={formData.deadline}
                   onChange={(e) =>
                     setFormData({ ...formData, deadline: e.target.value })
@@ -199,13 +201,13 @@ export default function SavingsPage() {
               <div className='flex gap-3 pt-4'>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className='flex-1 py-4 font-black text-stone-400'
+                  className='flex-1 py-4 font-black text-text-secondary hover:text-text-primary transition-colors'
                 >
                   Batal
                 </button>
                 <button
                   onClick={handleSave}
-                  className='flex-[2] bg-stone-800 text-white py-4 rounded-2xl font-black shadow-xl'
+                  className='flex-[2] bg-primary text-text-primary py-4 rounded-2xl font-black shadow-xl hover:opacity-90 active:scale-95 transition-all'
                 >
                   Gasskeun!
                 </button>
@@ -253,23 +255,25 @@ function SavingCard({ plan, onDelete }) {
   }, [plan]);
 
   return (
-    <div className='bg-white rounded-[2.5rem] border border-stone-200 shadow-sm overflow-hidden relative'>
+    <div className='bg-surface rounded-[2.5rem] border border-border shadow-sm overflow-hidden relative transition-colors'>
       {/* Background Decor */}
       <div className='absolute top-0 right-0 p-6 opacity-10'>
-        <Target className='w-20 h-20 text-stone-800' />
+        <Target className='w-20 h-20 text-text-primary' />
       </div>
 
       <div className='p-6'>
         <div className='flex justify-between items-start mb-4'>
           <div>
-            <h4 className='text-lg font-black text-stone-800'>{plan.title}</h4>
-            <p className='text-[10px] font-bold text-stone-400 uppercase tracking-widest flex items-center gap-1'>
+            <h4 className='text-lg font-black text-text-primary'>
+              {plan.title}
+            </h4>
+            <p className='text-[10px] font-bold text-text-secondary uppercase tracking-widest flex items-center gap-1'>
               <Calendar className='w-3 h-3' /> {stats.daysLeft} Hari Lagi
             </p>
           </div>
           <button
             onClick={onDelete}
-            className='p-2 text-stone-300 hover:text-red-500 transition-colors'
+            className='p-2 text-text-secondary/50 hover:text-expense transition-colors'
           >
             <Trash2 className='w-4 h-4' />
           </button>
@@ -278,17 +282,17 @@ function SavingCard({ plan, onDelete }) {
         {/* Progress Bar */}
         <div className='mb-6'>
           <div className='flex justify-between items-end mb-2'>
-            <span className='text-2xl font-black text-stone-800'>
+            <span className='text-2xl font-black text-text-primary'>
               {stats.progress.toFixed(0)}%
             </span>
-            <span className='text-xs font-bold text-stone-500'>
+            <span className='text-xs font-bold text-text-secondary'>
               {formatRupiah(plan.currentAmount)} /{' '}
               {formatRupiah(plan.targetAmount)}
             </span>
           </div>
-          <div className='w-full h-3 bg-stone-100 rounded-full overflow-hidden'>
+          <div className='w-full h-3 bg-border rounded-full overflow-hidden'>
             <div
-              className='h-full bg-stone-800 rounded-full transition-all duration-1000'
+              className='h-full bg-primary rounded-full transition-all duration-1000'
               style={{ width: `${stats.progress}%` }}
             />
           </div>
@@ -297,35 +301,35 @@ function SavingCard({ plan, onDelete }) {
         {/* Projection Grid */}
         {!stats.isCompleted ? (
           <div className='grid grid-cols-3 gap-2 mb-6'>
-            <div className='bg-stone-50 p-3 rounded-2xl border border-stone-100 text-center'>
-              <p className='text-[8px] font-black text-stone-400 uppercase mb-1'>
+            <div className='bg-bg-hover p-3 rounded-2xl border border-border text-center transition-colors'>
+              <p className='text-[8px] font-black text-text-secondary uppercase mb-1'>
                 Harian
               </p>
-              <p className='text-[10px] font-black text-stone-800'>
+              <p className='text-[10px] font-black text-text-primary'>
                 {formatRupiah(stats.daily)}
               </p>
             </div>
-            <div className='bg-stone-50 p-3 rounded-2xl border border-stone-100 text-center'>
-              <p className='text-[8px] font-black text-stone-400 uppercase mb-1'>
+            <div className='bg-bg-hover p-3 rounded-2xl border border-border text-center transition-colors'>
+              <p className='text-[8px] font-black text-text-secondary uppercase mb-1'>
                 Mingguan
               </p>
-              <p className='text-[10px] font-black text-stone-800'>
+              <p className='text-[10px] font-black text-text-primary'>
                 {formatRupiah(stats.weekly)}
               </p>
             </div>
-            <div className='bg-stone-800 p-3 rounded-2xl text-center shadow-lg'>
-              <p className='text-[8px] font-black text-stone-300 uppercase mb-1'>
+            <div className='bg-primary p-3 rounded-2xl text-center shadow-lg transition-colors'>
+              <p className='text-[8px] font-black text-text-primary/70 uppercase mb-1'>
                 Bulanan
               </p>
-              <p className='text-[10px] font-black text-white'>
+              <p className='text-[10px] font-black text-text-primary'>
                 {formatRupiah(stats.monthly)}
               </p>
             </div>
           </div>
         ) : (
-          <div className='bg-green-50 p-4 rounded-3xl border border-green-100 flex items-center gap-3 mb-6'>
-            <CheckCircle2 className='w-6 h-6 text-green-500' />
-            <p className='text-xs font-bold text-green-700'>
+          <div className='bg-income/10 p-4 rounded-3xl border border-income/20 flex items-center gap-3 mb-6 transition-colors'>
+            <CheckCircle2 className='w-6 h-6 text-income' />
+            <p className='text-xs font-bold text-income'>
               Target tercapai! Kamu keren banget!
             </p>
           </div>
@@ -333,15 +337,15 @@ function SavingCard({ plan, onDelete }) {
 
         {/* Insight Feature: Daily Sacrifice */}
         {!stats.isCompleted && (
-          <div className='bg-orange-50 p-4 rounded-3xl border border-orange-100 flex items-center gap-4'>
-            <div className='w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm'>
-              <Flame className='w-5 h-5 text-orange-500' />
+          <div className='bg-warning/10 p-4 rounded-3xl border border-warning/20 flex items-center gap-4 transition-colors'>
+            <div className='w-10 h-10 bg-surface rounded-2xl flex items-center justify-center shadow-sm'>
+              <Flame className='w-5 h-5 text-warning' />
             </div>
             <div>
-              <p className='text-[10px] font-black text-orange-400 uppercase tracking-widest'>
+              <p className='text-[10px] font-black text-warning uppercase tracking-widest'>
                 Daily Sacrifice
               </p>
-              <p className='text-[11px] font-bold text-orange-700 leading-tight'>
+              <p className='text-[11px] font-bold text-warning leading-tight'>
                 Sisihkan seharga 1 cup kopi ({formatRupiah(stats.daily)}) tiap
                 hari biar cepet lunas!
               </p>

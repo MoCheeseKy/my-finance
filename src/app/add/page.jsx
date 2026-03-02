@@ -286,22 +286,24 @@ export default function AddRecord() {
   };
 
   return (
-    <main className='min-h-screen bg-[#FAFAF9] p-6 max-w-md mx-auto pb-24 relative overflow-x-hidden'>
+    <main className='min-h-screen bg-bg p-6 max-w-md mx-auto pb-24 relative overflow-x-hidden transition-colors duration-300'>
       <header className='flex items-center gap-4 mb-6 pt-2'>
         <button
           onClick={() => router.back()}
-          className='w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-stone-200 hover:bg-stone-50 transition-colors'
+          className='w-10 h-10 bg-surface rounded-2xl flex items-center justify-center shadow-sm border border-border hover:bg-bg-hover transition-colors'
         >
-          <ArrowLeft className='w-5 h-5 text-stone-800' />
+          <ArrowLeft className='w-5 h-5 text-text-primary' />
         </button>
-        <h1 className='text-xl font-black text-stone-800'>Catat Dulu Ygy</h1>
+        <h1 className='text-xl font-black text-text-primary'>Catat Dulu Ygy</h1>
       </header>
 
       {/* QUICK ACTIONS: SCAN BON & MUTASI */}
       <div className='flex gap-3 mb-6'>
-        <label className='flex-1 bg-white border border-stone-200 p-3 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-stone-50 transition-colors shadow-sm'>
-          <Camera className='w-5 h-5 text-stone-600' />
-          <span className='text-xs font-bold text-stone-600'>Scan Bon</span>
+        <label className='flex-1 bg-surface border border-border p-3 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-bg-hover transition-colors shadow-sm'>
+          <Camera className='w-5 h-5 text-text-secondary' />
+          <span className='text-xs font-bold text-text-secondary'>
+            Scan Bon
+          </span>
           <input
             type='file'
             accept='image/*'
@@ -309,9 +311,11 @@ export default function AddRecord() {
             onChange={handleScanBon}
           />
         </label>
-        <label className='flex-1 bg-white border border-stone-200 p-3 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-stone-50 transition-colors shadow-sm'>
-          <FileText className='w-5 h-5 text-stone-600' />
-          <span className='text-xs font-bold text-stone-600'>File Mutasi</span>
+        <label className='flex-1 bg-surface border border-border p-3 rounded-2xl flex flex-col items-center justify-center gap-1 cursor-pointer hover:bg-bg-hover transition-colors shadow-sm'>
+          <FileText className='w-5 h-5 text-text-secondary' />
+          <span className='text-xs font-bold text-text-secondary'>
+            File Mutasi
+          </span>
           <input
             type='file'
             accept='.pdf,.csv,image/*'
@@ -322,22 +326,22 @@ export default function AddRecord() {
       </div>
 
       {isScanning && (
-        <div className='text-center text-sm font-bold text-blue-600 mb-6 animate-pulse'>
+        <div className='text-center text-sm font-bold text-primary mb-6 animate-pulse'>
           AI lagi baca datanya bentar ya...
         </div>
       )}
 
       {/* TIPE TRANSAKSI (Form Manual) */}
-      <div className='flex bg-white p-1.5 rounded-[1.25rem] shadow-sm border border-stone-200 mb-8'>
+      <div className='flex bg-surface p-1.5 rounded-[1.25rem] shadow-sm border border-border mb-8'>
         <button
           onClick={() => handleTypeChange('expense')}
-          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${txnType === 'expense' ? 'bg-red-100 text-red-700 shadow-sm' : 'text-stone-400 hover:bg-stone-50'}`}
+          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${txnType === 'expense' ? 'bg-expense/10 text-expense shadow-sm' : 'text-text-secondary hover:bg-bg-hover'}`}
         >
           Ngabisin
         </button>
         <button
           onClick={() => handleTypeChange('income')}
-          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${txnType === 'income' ? 'bg-green-100 text-green-700 shadow-sm' : 'text-stone-400 hover:bg-stone-50'}`}
+          className={`flex-1 py-3 text-sm font-bold rounded-xl transition-all ${txnType === 'income' ? 'bg-income/10 text-income shadow-sm' : 'text-text-secondary hover:bg-bg-hover'}`}
         >
           Dapet Cuan
         </button>
@@ -345,9 +349,11 @@ export default function AddRecord() {
 
       {/* INPUT NOMINAL */}
       <div className='flex flex-col items-center justify-center mb-10'>
-        <p className='text-stone-500 font-bold mb-2'>Mau masukin berapa?</p>
-        <div className='flex items-center text-5xl font-black text-stone-800 border-b-2 border-stone-300 focus-within:border-stone-800 pb-2 transition-colors'>
-          <span className='text-3xl mr-2 text-stone-600'>Rp</span>
+        <p className='text-text-secondary font-bold mb-2'>
+          Mau masukin berapa?
+        </p>
+        <div className='flex items-center text-5xl font-black text-text-primary border-b-2 border-border focus-within:border-primary pb-2 transition-colors'>
+          <span className='text-3xl mr-2 text-text-secondary'>Rp</span>
           <input
             type='number'
             min='0'
@@ -357,15 +363,15 @@ export default function AddRecord() {
               if (['-', 'e', '+', '.'].includes(e.key)) e.preventDefault();
             }}
             placeholder='0'
-            className='w-full max-w-[220px] bg-transparent outline-none text-center placeholder:text-stone-300 text-stone-800'
+            className='w-full max-w-[220px] bg-transparent outline-none text-center placeholder:text-text-secondary/50 text-text-primary'
           />
         </div>
       </div>
 
       <section className='space-y-5'>
         {/* NAMA TRANSAKSI */}
-        <div className='bg-white p-4 rounded-3xl border border-stone-200 shadow-sm focus-within:ring-2 focus-within:ring-stone-800 transition-all'>
-          <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1'>
+        <div className='bg-surface p-4 rounded-3xl border border-border shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all'>
+          <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1'>
             Nama Transaksi
           </label>
           <input
@@ -377,29 +383,29 @@ export default function AddRecord() {
                 ? 'Misal: Makan Siang, Bensin...'
                 : 'Misal: Gaji, Jual Barang...'
             }
-            className='w-full bg-transparent outline-none font-bold text-stone-800 placeholder:text-stone-300 placeholder:font-normal'
+            className='w-full bg-transparent outline-none font-bold text-text-primary placeholder:text-text-secondary/50 placeholder:font-normal'
           />
         </div>
 
         {/* INPUT TANGGAL */}
-        <div className='bg-white p-4 rounded-3xl border border-stone-200 shadow-sm focus-within:ring-2 focus-within:ring-stone-800 transition-all'>
-          <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1'>
+        <div className='bg-surface p-4 rounded-3xl border border-border shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all'>
+          <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1'>
             Tanggal Transaksi
           </label>
           <div className='flex items-center gap-2'>
-            <Calendar className='w-4 h-4 text-stone-400' />
+            <Calendar className='w-4 h-4 text-text-secondary' />
             <input
               type='date'
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className='w-full bg-transparent outline-none font-bold text-stone-800'
+              className='w-full bg-transparent outline-none font-bold text-text-primary'
             />
           </div>
         </div>
 
         {/* SUMBER / TUJUAN */}
-        <div className='bg-white p-4 rounded-3xl border border-stone-200 shadow-sm focus-within:ring-2 focus-within:ring-stone-800 transition-all'>
-          <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1'>
+        <div className='bg-surface p-4 rounded-3xl border border-border shadow-sm focus-within:ring-2 focus-within:ring-primary/20 focus-within:border-primary transition-all'>
+          <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1'>
             {txnType === 'expense'
               ? 'Tujuan (Toko / Merchant)'
               : 'Sumber (Pengirim / Instansi)'}
@@ -409,24 +415,24 @@ export default function AddRecord() {
             value={sourceName}
             onChange={(e) => setSourceName(e.target.value)}
             placeholder='Opsional...'
-            className='w-full bg-transparent outline-none font-bold text-stone-800 placeholder:text-stone-300 placeholder:font-normal'
+            className='w-full bg-transparent outline-none font-bold text-text-primary placeholder:text-text-secondary/50 placeholder:font-normal'
           />
         </div>
 
         {/* SUMBER DANA (ACCOUNT) */}
         {accounts.length === 0 ? (
-          <div className='bg-white p-6 rounded-3xl border border-dashed border-stone-300 shadow-sm flex flex-col items-center justify-center text-center gap-2'>
-            <div className='w-12 h-12 bg-stone-100 rounded-full flex items-center justify-center mb-2'>
-              <Wallet className='w-6 h-6 text-stone-400' />
+          <div className='bg-surface p-6 rounded-3xl border border-dashed border-border shadow-sm flex flex-col items-center justify-center text-center gap-2'>
+            <div className='w-12 h-12 bg-bg-hover rounded-full flex items-center justify-center mb-2'>
+              <Wallet className='w-6 h-6 text-text-secondary' />
             </div>
-            <p className='font-bold text-stone-800'>Belum Ada Sumber Dana</p>
-            <p className='text-xs text-stone-500 mb-2 px-4'>
+            <p className='font-bold text-text-primary'>Belum Ada Sumber Dana</p>
+            <p className='text-xs text-text-secondary mb-2 px-4'>
               Kamu belum masukin dompet, e-wallet, atau rekening nih.
             </p>
             <button
               type='button'
               onClick={() => router.push('/accounts')}
-              className='px-6 py-3 bg-stone-100 text-stone-800 text-sm font-bold rounded-2xl hover:bg-stone-200 transition-colors'
+              className='px-6 py-3 bg-bg-hover text-text-primary text-sm font-bold rounded-2xl hover:bg-border transition-colors'
             >
               Atur Sumber Dana
             </button>
@@ -434,19 +440,19 @@ export default function AddRecord() {
         ) : (
           <div
             onClick={() => setIsAccountModalOpen(true)}
-            className='bg-white p-4 rounded-3xl border border-stone-200 shadow-sm cursor-pointer hover:border-stone-400 transition-all flex justify-between items-center'
+            className='bg-surface p-4 rounded-3xl border border-border shadow-sm cursor-pointer hover:border-primary transition-all flex justify-between items-center'
           >
             <div>
-              <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1'>
+              <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1'>
                 {txnType === 'expense' ? 'Pakai Uang Dari' : 'Masuk Ke Dompet'}
               </label>
-              <div className='font-bold text-stone-800 text-lg'>
+              <div className='font-bold text-text-primary text-lg'>
                 {accounts.find((a) => a.id === selectedAccount)?.name ||
                   'Pilih Sumber'}
               </div>
             </div>
-            <div className='w-10 h-10 bg-stone-50 rounded-full flex items-center justify-center'>
-              <ChevronDown className='w-5 h-5 text-stone-500' />
+            <div className='w-10 h-10 bg-bg-hover rounded-full flex items-center justify-center'>
+              <ChevronDown className='w-5 h-5 text-text-secondary' />
             </div>
           </div>
         )}
@@ -454,33 +460,33 @@ export default function AddRecord() {
         {/* KATEGORI */}
         <div
           onClick={() => setIsCategoryModalOpen(true)}
-          className='bg-white p-4 rounded-3xl border border-stone-200 shadow-sm cursor-pointer hover:border-stone-400 transition-all flex justify-between items-center'
+          className='bg-surface p-4 rounded-3xl border border-border shadow-sm cursor-pointer hover:border-primary transition-all flex justify-between items-center'
         >
           <div>
-            <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-1'>
+            <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-1'>
               {txnType === 'expense'
                 ? 'Kategori Pengeluaran'
                 : 'Sumber Pemasukan'}
             </label>
-            <div className='font-bold text-stone-800 text-lg'>
+            <div className='font-bold text-text-primary text-lg'>
               {activeCategories.find((c) => c.id === category)?.label ||
                 'Pilih Kategori'}
             </div>
           </div>
-          <div className='w-10 h-10 bg-stone-50 rounded-full flex items-center justify-center'>
-            <ChevronDown className='w-5 h-5 text-stone-500' />
+          <div className='w-10 h-10 bg-bg-hover rounded-full flex items-center justify-center'>
+            <ChevronDown className='w-5 h-5 text-text-secondary' />
           </div>
         </div>
 
         {/* FREKUENSI */}
         {txnType === 'expense' && category === 'tetap' && (
-          <div className='bg-blue-50 p-4 rounded-3xl border border-blue-200 shadow-sm flex gap-2 overflow-x-auto scrollbar-hide'>
+          <div className='bg-primary/5 p-4 rounded-3xl border border-primary/20 shadow-sm flex gap-2 overflow-x-auto scrollbar-hide'>
             {['harian', 'mingguan', 'bulanan', 'tahunan'].map((freq) => (
               <button
                 type='button'
                 key={freq}
                 onClick={() => setFrequency(freq)}
-                className={`px-5 py-2.5 rounded-2xl text-sm font-bold capitalize whitespace-nowrap transition-colors ${frequency === freq ? 'bg-blue-600 text-white shadow-md' : 'bg-white text-blue-600 border border-blue-200'}`}
+                className={`px-5 py-2.5 rounded-2xl text-sm font-bold capitalize whitespace-nowrap transition-colors border ${frequency === freq ? 'bg-primary text-text-primary shadow-md border-primary' : 'bg-surface text-primary border-primary/20 hover:border-primary/50'}`}
               >
                 {freq}
               </button>
@@ -493,7 +499,7 @@ export default function AddRecord() {
           type='button'
           onClick={handleSaveManual}
           disabled={accounts.length === 0}
-          className='w-full py-5 bg-stone-800 text-white font-black rounded-3xl shadow-[0_8px_20px_rgb(0,0,0,0.15)] hover:scale-[1.02] active:scale-[0.98] transition-all mt-6 disabled:bg-stone-300 disabled:cursor-not-allowed'
+          className='w-full py-5 bg-gradient-to-r from-primary to-investment text-text-primary font-black rounded-3xl shadow-lg hover:scale-[1.02] active:scale-[0.98] transition-all mt-6 disabled:from-bg-hover disabled:to-bg-hover disabled:text-text-secondary/50 disabled:cursor-not-allowed disabled:shadow-none border-2 border-primary/20'
         >
           Simpan Transaksi
         </button>
@@ -503,19 +509,19 @@ export default function AddRecord() {
       {isDrawerOpen && (
         <>
           <div
-            className='fixed inset-0 z-40 bg-stone-900/40 backdrop-blur-sm animate-in fade-in'
+            className='fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in'
             onClick={() => setIsDrawerOpen(false)}
           />
-          <div className='fixed inset-x-0 bottom-0 z-50 bg-[#FAFAF9] rounded-t-[2.5rem] shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-full duration-300 max-w-md mx-auto'>
-            <div className='p-6 pb-2 border-b border-stone-200 flex justify-between items-center bg-white rounded-t-[2.5rem]'>
-              <h3 className='font-black text-xl text-stone-800'>
+          <div className='fixed inset-x-0 bottom-0 z-50 bg-bg rounded-t-[2.5rem] shadow-2xl max-h-[85vh] flex flex-col animate-in slide-in-from-bottom-full duration-300 max-w-md mx-auto'>
+            <div className='p-6 pb-2 border-b border-border flex justify-between items-center bg-surface rounded-t-[2.5rem]'>
+              <h3 className='font-black text-xl text-text-primary'>
                 Review Hasil Scan
               </h3>
               <button
                 onClick={() => setIsDrawerOpen(false)}
-                className='p-2 bg-stone-100 rounded-full hover:bg-stone-200'
+                className='p-2 bg-bg-hover rounded-full hover:bg-border transition-colors'
               >
-                <X className='w-5 h-5 text-stone-600' />
+                <X className='w-5 h-5 text-text-secondary' />
               </button>
             </div>
 
@@ -523,11 +529,11 @@ export default function AddRecord() {
               {scannedItems.map((item) => (
                 <div
                   key={item.id}
-                  className='bg-white p-4 rounded-3xl border border-stone-200 shadow-sm relative'
+                  className='bg-surface p-4 rounded-3xl border border-border shadow-sm relative'
                 >
                   <button
                     onClick={() => removeScannedItem(item.id)}
-                    className='absolute top-4 right-4 p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors'
+                    className='absolute top-4 right-4 p-2 text-expense hover:bg-expense/10 rounded-xl transition-colors'
                   >
                     <Trash2 className='w-4 h-4' />
                   </button>
@@ -536,7 +542,7 @@ export default function AddRecord() {
                   <div className='mb-3 pr-10'>
                     <button
                       onClick={() => toggleItemType(item.id, item.type)}
-                      className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2 py-1.5 rounded-md transition-colors ${item.type === 'expense' ? 'bg-red-100 text-red-700 hover:bg-red-200' : 'bg-green-100 text-green-700 hover:bg-green-200'}`}
+                      className={`flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider px-2 py-1.5 rounded-md transition-colors border ${item.type === 'expense' ? 'bg-expense/10 text-expense border-expense/20 hover:bg-expense/20' : 'bg-income/10 text-income border-income/20 hover:bg-income/20'}`}
                       title='Klik untuk menukar status'
                     >
                       <RefreshCcw className='w-3 h-3' />
@@ -546,8 +552,8 @@ export default function AddRecord() {
 
                   <div className='space-y-3'>
                     <div className='flex gap-2'>
-                      <div className='flex-1 bg-stone-50 rounded-xl p-2 px-3 border border-stone-100 focus-within:border-stone-400'>
-                        <label className='text-[9px] font-bold text-stone-400 block'>
+                      <div className='flex-1 bg-bg-hover rounded-xl p-2 px-3 border border-border focus-within:border-primary transition-colors'>
+                        <label className='text-[9px] font-bold text-text-secondary block mb-1'>
                           Nama Transaksi
                         </label>
                         <input
@@ -557,11 +563,11 @@ export default function AddRecord() {
                             updateScannedItem(item.id, 'title', e.target.value)
                           }
                           placeholder='Cth: Beli Kopi'
-                          className='w-full bg-transparent outline-none text-sm font-bold text-stone-800'
+                          className='w-full bg-transparent outline-none text-sm font-bold text-text-primary'
                         />
                       </div>
-                      <div className='flex-1 bg-stone-50 rounded-xl p-2 px-3 border border-stone-100 focus-within:border-stone-400'>
-                        <label className='text-[9px] font-bold text-stone-400 block'>
+                      <div className='flex-1 bg-bg-hover rounded-xl p-2 px-3 border border-border focus-within:border-primary transition-colors'>
+                        <label className='text-[9px] font-bold text-text-secondary block mb-1'>
                           Nominal (Rp)
                         </label>
                         <input
@@ -571,14 +577,14 @@ export default function AddRecord() {
                             updateScannedItem(item.id, 'amount', e.target.value)
                           }
                           placeholder='0'
-                          className='w-full bg-transparent outline-none text-sm font-bold text-stone-800'
+                          className='w-full bg-transparent outline-none text-sm font-bold text-text-primary'
                         />
                       </div>
                     </div>
 
                     <div className='flex gap-2'>
-                      <div className='flex-1 bg-stone-50 rounded-xl p-2 px-3 border border-stone-100 focus-within:border-stone-400'>
-                        <label className='text-[9px] font-bold text-stone-400 block'>
+                      <div className='flex-1 bg-bg-hover rounded-xl p-2 px-3 border border-border focus-within:border-primary transition-colors'>
+                        <label className='text-[9px] font-bold text-text-secondary block mb-1'>
                           Tanggal
                         </label>
                         <input
@@ -587,11 +593,11 @@ export default function AddRecord() {
                           onChange={(e) =>
                             updateScannedItem(item.id, 'date', e.target.value)
                           }
-                          className='w-full bg-transparent outline-none text-sm font-bold text-stone-800'
+                          className='w-full bg-transparent outline-none text-sm font-bold text-text-primary'
                         />
                       </div>
-                      <div className='flex-[1.5] bg-stone-50 rounded-xl p-2 px-3 border border-stone-100 focus-within:border-stone-400'>
-                        <label className='text-[9px] font-bold text-stone-400 block'>
+                      <div className='flex-[1.5] bg-bg-hover rounded-xl p-2 px-3 border border-border focus-within:border-primary transition-colors'>
+                        <label className='text-[9px] font-bold text-text-secondary block mb-1'>
                           Sumber / Tujuan
                         </label>
                         <input
@@ -601,7 +607,7 @@ export default function AddRecord() {
                             updateScannedItem(item.id, 'source', e.target.value)
                           }
                           placeholder='Opsional...'
-                          className='w-full bg-transparent outline-none text-sm font-bold text-stone-800'
+                          className='w-full bg-transparent outline-none text-sm font-bold text-text-primary'
                         />
                       </div>
                     </div>
@@ -612,21 +618,21 @@ export default function AddRecord() {
               {/* TOMBOL TAMBAH MANUAL */}
               <button
                 onClick={handleAddBlankItem}
-                className='w-full py-4 border-2 border-dashed border-stone-300 rounded-3xl text-stone-500 font-bold text-sm flex items-center justify-center gap-2 hover:bg-stone-100 hover:text-stone-700 transition-colors mt-2'
+                className='w-full py-4 border-2 border-dashed border-border rounded-3xl text-text-secondary font-bold text-sm flex items-center justify-center gap-2 hover:bg-bg-hover hover:text-text-primary transition-colors mt-2'
               >
                 <Plus className='w-5 h-5' />
                 Tambah Transaksi Manual
               </button>
             </div>
 
-            <div className='p-6 bg-white border-t border-stone-200 pb-10'>
-              <label className='text-[10px] font-black text-stone-400 uppercase tracking-wider block mb-2'>
+            <div className='p-6 bg-surface border-t border-border pb-10 rounded-t-3xl'>
+              <label className='text-[10px] font-black text-text-secondary uppercase tracking-wider block mb-2'>
                 Simpan ke Dompet
               </label>
               <select
                 value={selectedAccount}
                 onChange={(e) => setSelectedAccount(e.target.value)}
-                className='w-full bg-stone-50 border border-stone-200 p-3 rounded-2xl mb-4 font-bold text-stone-700 outline-none'
+                className='w-full bg-bg-hover border border-border p-3 rounded-2xl mb-4 font-bold text-text-primary outline-none focus:border-primary transition-colors'
               >
                 {accounts.map((acc) => (
                   <option key={acc.id} value={acc.id}>
@@ -636,7 +642,7 @@ export default function AddRecord() {
               </select>
               <button
                 onClick={handleSaveBatch}
-                className='w-full py-4 bg-stone-800 text-white font-black rounded-2xl shadow-lg hover:bg-stone-900 active:scale-[0.98] transition-all'
+                className='w-full py-4 bg-primary text-text-primary font-black rounded-2xl shadow-lg hover:opacity-90 active:scale-[0.98] transition-all'
               >
                 Simpan {scannedItems.length} Transaksi
               </button>
@@ -647,15 +653,15 @@ export default function AddRecord() {
 
       {/* MODAL PILIH SUMBER & KATEGORI */}
       {isAccountModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-stone-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
+        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
+          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 border border-border'>
             <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-stone-800'>
+              <h3 className='font-black text-xl text-text-primary'>
                 Pilih Sumber
               </h3>
               <button
                 onClick={() => setIsAccountModalOpen(false)}
-                className='w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200'
+                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
               >
                 <X className='w-5 h-5' />
               </button>
@@ -668,11 +674,11 @@ export default function AddRecord() {
                     setSelectedAccount(acc.id);
                     setIsAccountModalOpen(false);
                   }}
-                  className={`w-full flex justify-between items-center p-4 rounded-2xl text-left transition-colors border ${selectedAccount === acc.id ? 'bg-stone-800 text-white border-stone-800' : 'bg-stone-50 text-stone-700 border-transparent hover:border-stone-200'}`}
+                  className={`w-full flex justify-between items-center p-4 rounded-2xl text-left transition-colors border ${selectedAccount === acc.id ? 'bg-primary text-text-primary border-primary' : 'bg-bg-hover text-text-primary border-transparent hover:border-border'}`}
                 >
                   <span className='font-bold'>{acc.name}</span>
                   <span
-                    className={`text-sm font-bold ${selectedAccount === acc.id ? 'text-stone-300' : 'text-stone-500'}`}
+                    className={`text-sm font-bold ${selectedAccount === acc.id ? 'text-text-primary/70' : 'text-text-secondary'}`}
                   >
                     Rp {acc.balance.toLocaleString('id-ID')}
                   </span>
@@ -684,17 +690,17 @@ export default function AddRecord() {
       )}
 
       {isCategoryModalOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-stone-900/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
+        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
+          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 border border-border'>
             <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-stone-800'>
+              <h3 className='font-black text-xl text-text-primary'>
                 {txnType === 'expense'
                   ? 'Pilih Kategori'
                   : 'Pilih Sumber Pemasukan'}
               </h3>
               <button
                 onClick={() => setIsCategoryModalOpen(false)}
-                className='w-8 h-8 bg-stone-100 rounded-full flex items-center justify-center text-stone-500 hover:bg-stone-200'
+                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
               >
                 <X className='w-5 h-5' />
               </button>
@@ -707,7 +713,7 @@ export default function AddRecord() {
                     setCategory(cat.id);
                     setIsCategoryModalOpen(false);
                   }}
-                  className={`w-full p-4 rounded-2xl text-left transition-colors border ${category === cat.id ? 'bg-stone-800 text-white border-stone-800' : 'bg-stone-50 text-stone-700 border-transparent hover:border-stone-200'}`}
+                  className={`w-full p-4 rounded-2xl text-left transition-colors border ${category === cat.id ? 'bg-primary text-text-primary border-primary' : 'bg-bg-hover text-text-primary border-transparent hover:border-border'}`}
                 >
                   <span className='font-bold'>{cat.label}</span>
                 </button>

@@ -1,37 +1,66 @@
 @import 'tailwindcss';
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-accent: var(--accent);
 
-  --color-pastel-bg: #fff0f5; /* Lavender Blush / cute warm pinkish white */
-  --color-pastel-pink: #ffb6c1; /* Light Pink */
-  --color-pastel-purple: #e6e6fa; /* Lavender */
-  --color-pastel-peach: #ffdab9; /* Peach Puff */
-  --color-pastel-blue: #b0e0e6; /* Powder Blue */
-  --color-pastel-green: #98fb98; /* Pale Green */
-  --color-pastel-yellow: #fffdf0; /* Soft pastel yellow */
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
 
-  --color-text-main: #5c4d5c; /* Muted purplish brown */
-  --color-text-muted: #a69ba6; /* Soft purple-grey */
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+
+  --color-income: var(--income);
+  --color-expense: var(--expense);
+  --color-warning: var(--warning);
+  --color-investment: var(--investment);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+:root {
+  /* === LIGHT MODE === */
+  --primary: #dcc6ff;
+  --primary-hover: #c5a9ff;
+  --secondary: #ffd6a5;
+  --accent: #f8c8dc;
+
+  --bg: #faf9f6;
+  --surface: #ffffff;
+  --border: #eae6f5;
+
+  --text-primary: #2e2e2e;
+  --text-secondary: #6b6b6b;
+
+  --income: #8ed081;
+  --expense: #ff8c8c;
+  --warning: #ffd166;
+  --investment: #a5b4fc;
+}
+
+.dark {
+  /* === DARK MODE === */
+  --primary: #9b7ede;
+  --primary-hover: #b79cff;
+  --secondary: #ffb86b;
+  --accent: #e6a6c4;
+
+  --bg: #1e1b2e;
+  --surface: #2a2640;
+  --border: #3e3a5f;
+
+  --text-primary: #f3f0ff;
+  --text-secondary: #b8b3d6;
+
+  --income: #6ee7a8;
+  --expense: #ff6b6b;
+  --warning: #ffc857;
+  --investment: #818cf8;
 }
 
 body {
-  background-color: var(--color-pastel-bg);
-  color: var(--color-text-main);
+  background-color: var(--bg);
+  color: var(--text-primary);
   font-family: ui-sans-serif, system-ui, sans-serif;
 }
