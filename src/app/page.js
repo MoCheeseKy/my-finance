@@ -180,7 +180,7 @@ export default function Dashboard() {
           <h3 className='text-sm font-black text-text-main mb-3 px-1'>
             Fitur Pendukung
           </h3>
-          <div className='grid grid-cols-3 gap-3 pb-2'>
+          <div className='grid grid-cols-2 gap-3 pb-2'>
             {/* Nabung */}
             <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-blue/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-blue-300 transition-all cursor-pointer group'>
               <div className='w-12 h-12 mb-2 bg-pastel-blue/30 rounded-full flex items-center justify-center'>
@@ -198,6 +198,16 @@ export default function Dashboard() {
               </div>
               <span className='text-xs font-bold text-text-main group-hover:text-orange-500 transition-colors'>
                 Split Bill
+              </span>
+            </div>
+
+            {/* Investment */}
+            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-peach/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-orange-300 transition-all cursor-pointer group'>
+              <div className='w-12 h-12 mb-2 bg-pastel-peach/40 rounded-full flex items-center justify-center'>
+                <ReceiptText className='w-6 h-6 text-orange-500' />
+              </div>
+              <span className='text-xs font-bold text-text-main group-hover:text-orange-500 transition-colors'>
+                Investasi
               </span>
             </div>
 
