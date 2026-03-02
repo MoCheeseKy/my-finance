@@ -123,10 +123,10 @@ export default function Dashboard() {
             </div>
             <div>
               <h1 className='text-sm text-text-muted font-medium mb-0.5'>
-                Morning, bestie! 💅
+                Selamat Datang
               </h1>
               <h2 className='text-2xl font-black tracking-tight text-text-main'>
-                Dashboard
+                Bossque!
               </h2>
             </div>
           </div>
@@ -178,9 +178,9 @@ export default function Dashboard() {
         {/* Quick Features Row -> 2x2 Grid */}
         <section className='mb-6'>
           <h3 className='text-sm font-black text-text-main mb-3 px-1'>
-            Fitur Pendukung ✨
+            Fitur Pendukung
           </h3>
-          <div className='grid grid-cols-2 gap-3 pb-2'>
+          <div className='grid grid-cols-3 gap-3 pb-2'>
             {/* Nabung */}
             <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-blue/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-blue-300 transition-all cursor-pointer group'>
               <div className='w-12 h-12 mb-2 bg-pastel-blue/30 rounded-full flex items-center justify-center'>
@@ -210,16 +210,6 @@ export default function Dashboard() {
                 Budgeting
               </span>
             </div>
-
-            {/* Langganan */}
-            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-purple/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-purple-300 transition-all cursor-pointer group'>
-              <div className='w-12 h-12 mb-2 bg-pastel-purple/40 rounded-full flex items-center justify-center'>
-                <RefreshCw className='w-6 h-6 text-purple-500' />
-              </div>
-              <span className='text-xs font-bold text-text-main group-hover:text-purple-500 transition-colors'>
-                Langganan
-              </span>
-            </div>
           </div>
         </section>
 
@@ -227,7 +217,7 @@ export default function Dashboard() {
         <section className='mb-6'>
           <div className='flex justify-between items-center mb-3 px-1'>
             <h3 className='text-sm font-black text-text-main'>
-              Transaksi Terakhir 📝
+              Transaksi Terakhir
             </h3>
             <button
               onClick={() => router.push('/insight')}
@@ -241,7 +231,7 @@ export default function Dashboard() {
             {recentTransactions.length === 0 ? (
               <div className='text-center py-8 bg-white/60 backdrop-blur-sm rounded-[2rem] border-2 border-white/50 border-dashed'>
                 <p className='text-text-muted font-bold text-sm'>
-                  Belum ada transaksi bestie 🐣
+                  Belum ada transaksi bestie
                 </p>
               </div>
             ) : (

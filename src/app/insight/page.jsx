@@ -225,7 +225,7 @@ export default function Insights() {
 
   const handleExportCSV = () => {
     if (filteredList.length === 0) {
-      return alert('Belum ada transaksi buat di-export, bestie! 😅');
+      return alert('Belum ada transaksi buat di-export, bestie! ');
     }
 
     const headers = [
@@ -288,7 +288,7 @@ export default function Insights() {
           >
             <ArrowLeft className='w-5 h-5 text-text-main group-hover:text-pink-600 transition-colors' />
           </button>
-          <h1 className='text-xl font-black text-text-main'>Analytics 📊</h1>
+          <h1 className='text-xl font-black text-text-main'>Analytics </h1>
         </header>
 
         <div className='flex bg-white/80 backdrop-blur-sm p-1.5 rounded-[1.5rem] shadow-sm border-2 border-pastel-purple/40 mb-6'>
@@ -402,7 +402,7 @@ export default function Insights() {
         {/* TOP TRANSACTIONS SECTION */}
         <section className='mb-8'>
           <h3 className='text-sm font-black text-stone-800 uppercase tracking-wider mb-4 px-1'>
-            Top Transaksi 👑
+            Top Transaksi
           </h3>
           <div className='grid grid-cols-2 gap-3'>
             {/* Top Income */}
@@ -421,7 +421,7 @@ export default function Insights() {
                 </div>
               ) : (
                 <p className='text-xs font-bold text-text-muted/60'>
-                  Belum ada data 🐣
+                  Belum ada data
                 </p>
               )}
             </div>
@@ -442,7 +442,7 @@ export default function Insights() {
                 </div>
               ) : (
                 <p className='text-xs font-bold text-text-muted/60'>
-                  Belum ada data 🐣
+                  Belum ada data
                 </p>
               )}
             </div>
@@ -515,7 +515,7 @@ export default function Insights() {
             {filteredList.length === 0 ? (
               <div className='text-center py-10 bg-white rounded-3xl border border-stone-200 border-dashed'>
                 <p className='text-stone-400 font-bold text-sm'>
-                  Kosong nih bestie 🕵️‍♂️
+                  Kosong nih bestie
                 </p>
               </div>
             ) : (
@@ -560,7 +560,7 @@ export default function Insights() {
           <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
             <div className='flex justify-between items-center mb-6'>
               <h3 className='font-black text-xl text-stone-800'>
-                Distribusi Kategori 📊
+                Distribusi Kategori
               </h3>
               <button
                 onClick={() => setIsGraphDrawerOpen(false)}
@@ -620,7 +620,7 @@ export default function Insights() {
               </div>
             ) : (
               <p className='text-center text-sm font-bold text-stone-400 py-10'>
-                Belum ada pengeluaran periode ini 💸
+                Belum ada pengeluaran periode ini
               </p>
             )}
           </div>
@@ -635,7 +635,7 @@ export default function Insights() {
           <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 flex flex-col max-h-[85vh]'>
             <div className='flex justify-between items-center mb-6 flex-shrink-0'>
               <h3 className='font-black text-xl text-stone-800'>
-                Daftar Langganan 🔁
+                Daftar Langganan
               </h3>
               <button
                 onClick={() => setIsSubsDrawerOpen(false)}
@@ -660,7 +660,7 @@ export default function Insights() {
             <div className='overflow-y-auto scrollbar-hide space-y-3 pb-4 flex-1'>
               {activeSubscriptions.length === 0 ? (
                 <p className='text-center text-sm font-bold text-stone-400 py-6'>
-                  Aman, nggak ada tagihan rutin! 🎉
+                  Aman, nggak ada tagihan rutin!
                 </p>
               ) : (
                 activeSubscriptions.map((sub, idx) => (

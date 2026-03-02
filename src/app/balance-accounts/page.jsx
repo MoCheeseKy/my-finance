@@ -192,9 +192,7 @@ export default function AccountsManager() {
         >
           <ArrowLeft className='w-5 h-5 text-text-main group-hover:text-pink-600 transition-colors' />
         </button>
-        <h1 className='text-xl font-black text-text-main'>
-          Atur Sumber Dana 💳
-        </h1>
+        <h1 className='text-xl font-black text-text-main'>Atur Sumber Dana</h1>
       </header>
 
       <section className='bg-gradient-to-tr from-pastel-purple via-white to-pastel-pink p-6 rounded-[2.5rem] shadow-sm border-2 border-white mb-8 text-text-main relative overflow-hidden'>
@@ -338,7 +336,7 @@ export default function AccountsManager() {
               onClick={handleAddAccount}
               className='w-full py-5 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all border-2 border-white/50'
             >
-              Simpan Dompet 🚀
+              Simpan Dompet
             </button>
           </div>
         </div>
@@ -350,7 +348,7 @@ export default function AccountsManager() {
           <div className='bg-white w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300'>
             <div className='flex justify-between items-center mb-6'>
               <h3 className='font-black text-xl text-stone-800'>
-                Transfer Dana 💸
+                Transfer Dana
               </h3>
               <button
                 onClick={() => setIsTransferModalOpen(false)}
@@ -455,12 +453,12 @@ export default function AccountsManager() {
             <div className='h-6 mb-2'>
               {isBalanceInsufficient && (
                 <p className='text-red-500 text-xs font-bold text-center animate-pulse'>
-                  ⚠️ Saldo {fromAccountObj?.name} kurang nih!
+                  Saldo {fromAccountObj?.name} kurang nih!
                 </p>
               )}
               {isSameAccount && (
                 <p className='text-orange-500 text-xs font-bold text-center animate-pulse'>
-                  ⚠️ Masa transfer ke dompet yang sama?
+                  Masa transfer ke dompet yang sama?
                 </p>
               )}
             </div>
@@ -470,7 +468,7 @@ export default function AccountsManager() {
               disabled={isTransferDisabled}
               className='w-full py-5 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:from-stone-300 disabled:to-stone-300 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none border-2 border-white/50'
             >
-              Proses Transfer 🚀
+              Proses Transfer
             </button>
           </div>
         </div>
