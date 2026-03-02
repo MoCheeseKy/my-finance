@@ -184,27 +184,29 @@ export default function AccountsManager() {
     isBalanceInsufficient || isSameAccount || isZeroAmount;
 
   return (
-    <main className='min-h-screen bg-[#FAFAF9] p-6 max-w-md mx-auto pb-24 relative'>
+    <main className='min-h-screen bg-pastel-bg p-6 max-w-md mx-auto pb-24 relative'>
       <header className='flex items-center gap-4 mb-8 pt-2'>
         <button
           onClick={() => router.back()}
-          className='w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm border border-stone-200 hover:bg-stone-50 transition-colors'
+          className='w-10 h-10 bg-white rounded-[1rem] flex items-center justify-center shadow-sm border border-pastel-pink hover:bg-pastel-pink transition-colors group'
         >
-          <ArrowLeft className='w-5 h-5 text-stone-800' />
+          <ArrowLeft className='w-5 h-5 text-text-main group-hover:text-pink-600 transition-colors' />
         </button>
-        <h1 className='text-xl font-black text-stone-800'>
+        <h1 className='text-xl font-black text-text-main'>
           Atur Sumber Dana 💳
         </h1>
       </header>
 
-      <section className='bg-stone-800 p-6 rounded-[2rem] shadow-lg mb-8 text-white relative overflow-hidden'>
+      <section className='bg-gradient-to-tr from-pastel-purple via-white to-pastel-pink p-6 rounded-[2.5rem] shadow-sm border-2 border-white mb-8 text-text-main relative overflow-hidden'>
         <div className='relative z-10'>
-          <p className='text-stone-300 text-sm font-bold mb-1'>
+          <p className='text-text-main/70 text-sm font-bold mb-1'>
             Total Saldo Aktif
           </p>
-          <h2 className='text-3xl font-black'>{formatRupiah(totalBalance)}</h2>
+          <h2 className='text-3xl font-black text-text-main drop-shadow-sm'>
+            {formatRupiah(totalBalance)}
+          </h2>
         </div>
-        <div className='absolute -bottom-10 -right-10 w-32 h-32 bg-white/10 rounded-full blur-2xl'></div>
+        <div className='absolute -bottom-10 -right-10 w-32 h-32 bg-white/40 rounded-full blur-2xl'></div>
       </section>
 
       <section>
@@ -221,14 +223,14 @@ export default function AccountsManager() {
           {accounts.map((acc) => (
             <div
               key={acc.id}
-              className='bg-white p-4 rounded-3xl border border-stone-200 shadow-sm flex items-center justify-between group transition-all hover:border-stone-300'
+              className='bg-white/90 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-pastel-blue/30 shadow-sm flex items-center justify-between group transition-all hover:border-pastel-blue/60 hover:-translate-y-0.5'
             >
               <div className='flex items-center gap-4'>
-                <div className='w-12 h-12 bg-stone-50 rounded-2xl flex items-center justify-center border border-stone-100'>
-                  <CreditCard className='w-6 h-6 text-stone-600' />
+                <div className='w-12 h-12 bg-pastel-blue rounded-[1rem] flex items-center justify-center border border-white shadow-inner'>
+                  <CreditCard className='w-6 h-6 text-blue-500' />
                 </div>
                 <div>
-                  <p className='font-bold text-stone-800 text-lg leading-tight'>
+                  <p className='font-bold text-text-main text-lg leading-tight'>
                     {acc.name}{' '}
                     {acc.id === 'cash' && (
                       <span className='text-[10px] bg-stone-200 text-stone-600 px-2 py-0.5 rounded-full ml-1 align-middle'>
@@ -262,14 +264,14 @@ export default function AccountsManager() {
         {accounts.length >= 2 && (
           <button
             onClick={handleOpenTransfer}
-            className='w-full py-4 bg-white text-stone-800 border-2 border-stone-800 font-black rounded-3xl shadow-[0_8px_20px_rgb(0,0,0,0.08)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2'
+            className='w-full py-4 bg-white text-text-main border-2 border-pastel-purple font-black rounded-[2rem] shadow-sm hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 hover:bg-pastel-purple/10'
           >
-            <ArrowRightLeft className='w-5 h-5' /> Transfer
+            <ArrowRightLeft className='w-5 h-5 text-purple-500' /> Transfer
           </button>
         )}
         <button
           onClick={() => setIsModalOpen(true)}
-          className='w-full py-4 bg-stone-800 text-white font-black rounded-3xl shadow-[0_8px_20px_rgb(0,0,0,0.15)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2'
+          className='w-full py-4 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 border-2 border-white/50'
         >
           <Plus className='w-5 h-5' /> Tambah
         </button>
@@ -334,7 +336,7 @@ export default function AccountsManager() {
 
             <button
               onClick={handleAddAccount}
-              className='w-full py-5 bg-stone-800 text-white font-black rounded-3xl shadow-[0_8px_20px_rgb(0,0,0,0.15)] hover:scale-[1.02] active:scale-[0.98] transition-all'
+              className='w-full py-5 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all border-2 border-white/50'
             >
               Simpan Dompet 🚀
             </button>
@@ -466,7 +468,7 @@ export default function AccountsManager() {
             <button
               onClick={handleTransfer}
               disabled={isTransferDisabled}
-              className='w-full py-5 bg-stone-800 text-white font-black rounded-3xl shadow-[0_8px_20px_rgb(0,0,0,0.15)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:bg-stone-300 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none'
+              className='w-full py-5 bg-gradient-to-r from-pink-400 to-purple-400 text-white font-black rounded-[2rem] shadow-[0_8px_20px_rgb(255,182,193,0.5)] hover:scale-[1.02] active:scale-[0.98] transition-all disabled:from-stone-300 disabled:to-stone-300 disabled:cursor-not-allowed disabled:transform-none disabled:shadow-none border-2 border-white/50'
             >
               Proses Transfer 🚀
             </button>

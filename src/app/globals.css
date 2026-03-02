@@ -11,15 +11,16 @@
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  --color-pastel-bg: #fafaf9; /* Warm white */
-  --color-pastel-pink: #fce7f3; /* Soft pink */
-  --color-pastel-purple: #f3e8ff; /* Lavender */
-  --color-pastel-blue: #e0f2fe; /* Sky blue */
-  --color-pastel-green: #d1fae5; /* Mint green */
-  --color-pastel-yellow: #fef08a; /* Soft yellow */
+  --color-pastel-bg: #fff0f5; /* Lavender Blush / cute warm pinkish white */
+  --color-pastel-pink: #ffb6c1; /* Light Pink */
+  --color-pastel-purple: #e6e6fa; /* Lavender */
+  --color-pastel-peach: #ffdab9; /* Peach Puff */
+  --color-pastel-blue: #b0e0e6; /* Powder Blue */
+  --color-pastel-green: #98fb98; /* Pale Green */
+  --color-pastel-yellow: #fffdf0; /* Soft pastel yellow */
 
-  --color-text-main: #44403c; /* Stone 700 untuk teks agar lebih soft dari hitam */
-  --color-text-muted: #a8a29e; /* Stone 400 */
+  --color-text-main: #5c4d5c; /* Muted purplish brown */
+  --color-text-muted: #a69ba6; /* Soft purple-grey */
 }
 
 @media (prefers-color-scheme: dark) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { db, initDummyData } from '@/lib/storage';
 import {
   ArrowDownCircle,
@@ -13,9 +14,16 @@ import {
   MessageSquare,
   CreditCard,
   RefreshCw,
+  Wallet,
+  ReceiptText,
+  PiggyBank,
+  ChevronRight,
 } from 'lucide-react';
+import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 
 export default function Dashboard() {
+  const router = useRouter();
+
   // State management yang Gen-Z friendly (pake loading state biar ga kaget)
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState({
@@ -25,6 +33,7 @@ export default function Dashboard() {
     savings: { name: '', target: 1, current: 0 },
     upcomingBill: { name: '', amount: 0, daysLeft: 0 },
   });
+  const [recentTransactions, setRecentTransactions] = useState([]);
 
   // Fetching data dari local storage pas app pertama kali load
   useEffect(() => {
@@ -35,11 +44,39 @@ export default function Dashboard() {
         // Tarik semua data dari IndexedDB
         const balance = await db.getItem('balance');
         const income = await db.getItem('income');
-        const expense = await db.getItem('expense');
         const savings = await db.getItem('savings');
         const upcomingBill = await db.getItem('upcoming_bill');
+        const transactionsList = (await db.getItem('transactions')) || [];
 
-        setData({ balance, income, expense, savings, upcomingBill });
+        // Kalkulasi Income & Expense khusus BULAN INI
+        const now = new Date();
+        const monthStart = startOfMonth(now);
+        const monthEnd = endOfMonth(now);
+
+        let monthlyIncome = 0;
+        let monthlyExpense = 0;
+
+        transactionsList.forEach((txn) => {
+          const txnDate = new Date(txn.date);
+          if (isWithinInterval(txnDate, { start: monthStart, end: monthEnd })) {
+            if (txn.type === 'income') monthlyIncome += txn.amount;
+            if (txn.type === 'expense') monthlyExpense += txn.amount;
+          }
+        });
+
+        setData({
+          balance,
+          income: monthlyIncome,
+          expense: monthlyExpense,
+          savings,
+          upcomingBill,
+        });
+        // Ambil 5 transaksi paling baru
+        setRecentTransactions(
+          transactionsList
+            .sort((a, b) => new Date(b.date) - new Date(a.date))
+            .slice(0, 5),
+        );
       } catch (error) {
         console.error('Waduh, gagal nge-load data nih bestie:', error);
       } finally {
@@ -75,149 +112,168 @@ export default function Dashboard() {
     );
 
   return (
-    <main className='min-h-screen bg-[#FAFAF9] pb-28'>
-      <div className='absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-pastel-purple/40 to-transparent z-0'></div>
+    <main className='min-h-screen bg-pastel-bg pb-28'>
+      <div className='absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-pastel-pink/40 to-transparent z-0'></div>
 
       <div className='relative z-10 p-6 max-w-md mx-auto'>
-        {/* Header */}
-        <header className='flex justify-between items-center mb-6 pt-2'>
-          <div>
-            <p className='text-text-muted text-sm font-medium'>
-              Morning, bestie! 💅
-            </p>
-            <h1 className='text-2xl font-black tracking-tight text-text-main'>
-              Dashboard
-            </h1>
-          </div>
-          <div className='flex flex-col items-center'>
-            <div className='w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-sm border-2 border-pastel-yellow cursor-pointer hover:rotate-12 transition-transform'>
-              <Zap className='text-yellow-500 fill-yellow-500 w-5 h-5' />
+        <header className='flex justify-between items-center mb-6 pt-2 px-1 relative z-10'>
+          <div className='flex items-center gap-3'>
+            <div className='w-12 h-12 bg-white rounded-full flex items-center justify-center text-xl shadow-sm border-2 border-pastel-pink/50'>
+              👩‍💻
+            </div>
+            <div>
+              <h1 className='text-sm text-text-muted font-medium mb-0.5'>
+                Morning, bestie! 💅
+              </h1>
+              <h2 className='text-2xl font-black tracking-tight text-text-main'>
+                Dashboard
+              </h2>
             </div>
           </div>
         </header>
 
-        {/* Main Card - Net Worth */}
-        <section className='bg-white rounded-[2.5rem] p-1 shadow-sm border border-pastel-purple/30 mb-6'>
-          <div className='bg-gradient-to-br from-[#F3E8FF] via-[#FCE7F3] to-[#E0F2FE] p-6 rounded-[2.2rem]'>
-            <div className='flex justify-between items-start mb-2'>
-              <p className='text-text-main/70 text-sm font-semibold'>
-                Total Cuan (Net Worth)
-              </p>
-              <div
-                className={`px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1 ${financialZone.color} bg-white/60 backdrop-blur-sm`}
-              >
-                {financialZone.status}
-              </div>
-            </div>
-
-            <h2 className='text-4xl font-black text-text-main mb-6'>
+        {/* Main Card - Net Worth (Header dipisahkan) */}
+        <section className='bg-white/80 backdrop-blur-md rounded-[2.5rem] p-1.5 shadow-sm border-2 border-pastel-pink/50 mb-4'>
+          <div className='bg-gradient-to-br from-pastel-pink via-white to-pastel-blue p-6 rounded-[2rem] shadow-inner flex flex-col items-center justify-center text-center'>
+            <h2 className='text-4xl font-black text-text-main mb-6 drop-shadow-sm truncate w-full'>
               {formatRupiah(data.balance)}
             </h2>
 
-            <div className='flex gap-3'>
-              <div className='flex-1 bg-white/60 backdrop-blur-md px-4 py-3 rounded-2xl flex items-center gap-3'>
-                <ArrowDownCircle className='text-green-500 w-8 h-8 opacity-80' />
-                <div>
-                  <span className='text-[10px] text-text-muted font-bold uppercase tracking-wider'>
-                    Income
-                  </span>
-                  <p className='text-sm font-black text-text-main'>
-                    {formatRupiah(data.income)}
-                  </p>
-                </div>
+            <button
+              onClick={() => router.push('/balance-accounts')}
+              className='w-full bg-white/80 hover:bg-white text-text-main py-3 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-sm border border-white/50 transition-all hover:-translate-y-0.5'
+            >
+              <Wallet className='w-4 h-4 text-purple-400' />
+              Lihat Detail Dompet
+            </button>
+          </div>
+        </section>
+
+        {/* Separated Monthly Income & Expense Cards */}
+        <section className='grid grid-cols-2 gap-3 mb-6'>
+          <div className='bg-white/70 backdrop-blur-md px-4 py-4 rounded-[1.5rem] flex flex-col items-start gap-2 border-2 border-pastel-green/30 shadow-sm'>
+            <div className='flex items-center gap-2 mb-1 w-full'>
+              <ArrowDownCircle className='text-pastel-green w-6 h-6 fill-green-100 opacity-90 flex-shrink-0' />
+              <span className='text-[10px] text-text-muted font-bold uppercase tracking-wider truncate'>
+                Income
+              </span>
+            </div>
+            <p className='text-lg font-black text-text-main truncate w-full'>
+              {formatRupiah(data.income)}
+            </p>
+          </div>
+          <div className='bg-white/70 backdrop-blur-md px-4 py-4 rounded-[1.5rem] flex flex-col items-start gap-2 border-2 border-pastel-pink/30 shadow-sm'>
+            <div className='flex items-center gap-2 mb-1 w-full'>
+              <ArrowUpCircle className='text-pastel-pink w-6 h-6 fill-pink-100 opacity-90 drop-shadow-sm flex-shrink-0' />
+              <span className='text-[10px] text-text-muted font-bold uppercase tracking-wider truncate'>
+                Expense
+              </span>
+            </div>
+            <p className='text-lg font-black text-text-main truncate w-full'>
+              {formatRupiah(data.expense)}
+            </p>
+          </div>
+        </section>
+
+        {/* Quick Features Row -> 2x2 Grid */}
+        <section className='mb-6'>
+          <h3 className='text-sm font-black text-text-main mb-3 px-1'>
+            Fitur Pendukung ✨
+          </h3>
+          <div className='grid grid-cols-2 gap-3 pb-2'>
+            {/* Nabung */}
+            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-blue/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-blue-300 transition-all cursor-pointer group'>
+              <div className='w-12 h-12 mb-2 bg-pastel-blue/30 rounded-full flex items-center justify-center'>
+                <PiggyBank className='w-6 h-6 text-blue-500' />
               </div>
-              <div className='flex-1 bg-white/60 backdrop-blur-md px-4 py-3 rounded-2xl flex items-center gap-3'>
-                <ArrowUpCircle className='text-pink-500 w-8 h-8 opacity-80' />
-                <div>
-                  <span className='text-[10px] text-text-muted font-bold uppercase tracking-wider'>
-                    Expense
-                  </span>
-                  <p className='text-sm font-black text-text-main'>
-                    {formatRupiah(data.expense)}
-                  </p>
-                </div>
+              <span className='text-xs font-bold text-text-main group-hover:text-blue-500 transition-colors'>
+                Nabung
+              </span>
+            </div>
+
+            {/* Split Bill */}
+            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-peach/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-orange-300 transition-all cursor-pointer group'>
+              <div className='w-12 h-12 mb-2 bg-pastel-peach/40 rounded-full flex items-center justify-center'>
+                <ReceiptText className='w-6 h-6 text-orange-500' />
               </div>
+              <span className='text-xs font-bold text-text-main group-hover:text-orange-500 transition-colors'>
+                Split Bill
+              </span>
+            </div>
+
+            {/* Budgeting */}
+            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-green/60 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-green-400 transition-all cursor-pointer group'>
+              <div className='w-12 h-12 mb-2 bg-pastel-green/40 rounded-full flex items-center justify-center'>
+                <Target className='w-6 h-6 text-green-600' />
+              </div>
+              <span className='text-xs font-bold text-text-main group-hover:text-green-600 transition-colors'>
+                Budgeting
+              </span>
+            </div>
+
+            {/* Langganan */}
+            <div className='bg-white/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-pastel-purple/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-purple-300 transition-all cursor-pointer group'>
+              <div className='w-12 h-12 mb-2 bg-pastel-purple/40 rounded-full flex items-center justify-center'>
+                <RefreshCw className='w-6 h-6 text-purple-500' />
+              </div>
+              <span className='text-xs font-bold text-text-main group-hover:text-purple-500 transition-colors'>
+                Langganan
+              </span>
             </div>
           </div>
         </section>
 
-        {/* Bento Grid: Savings & Subscriptions */}
-        <section className='grid grid-cols-2 gap-4 mb-6'>
-          <div className='bg-white p-4 rounded-3xl shadow-sm border border-pastel-blue/30 flex flex-col justify-between hover:shadow-md transition-shadow cursor-pointer'>
-            <div className='flex justify-between items-start mb-4'>
-              <div className='w-8 h-8 bg-pastel-blue rounded-full flex items-center justify-center'>
-                <Target className='w-4 h-4 text-blue-600' />
-              </div>
-              <span className='text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-lg'>
-                {savingProgress}%
-              </span>
-            </div>
-            <div>
-              <p className='text-xs text-text-muted font-medium mb-1'>
-                Target Nabung
-              </p>
-              <p className='font-bold text-sm text-text-main truncate'>
-                {data.savings.name}
-              </p>
-            </div>
+        {/* Recent Transactions List */}
+        <section className='mb-6'>
+          <div className='flex justify-between items-center mb-3 px-1'>
+            <h3 className='text-sm font-black text-text-main'>
+              Transaksi Terakhir 📝
+            </h3>
+            <button
+              onClick={() => router.push('/insight')}
+              className='text-xs font-bold text-pink-500 hover:text-pink-600 flex items-center'
+            >
+              Lihat Semua <ChevronRight className='w-3 h-3 ml-0.5' />
+            </button>
           </div>
 
-          <div className='bg-white p-4 rounded-3xl shadow-sm border border-pastel-pink/30 flex flex-col justify-between hover:shadow-md transition-shadow cursor-pointer'>
-            <div className='flex justify-between items-start mb-4'>
-              <div className='w-8 h-8 bg-pastel-pink rounded-full flex items-center justify-center'>
-                <RefreshCw className='w-4 h-4 text-pink-600' />
+          <div className='space-y-3'>
+            {recentTransactions.length === 0 ? (
+              <div className='text-center py-8 bg-white/60 backdrop-blur-sm rounded-[2rem] border-2 border-white/50 border-dashed'>
+                <p className='text-text-muted font-bold text-sm'>
+                  Belum ada transaksi bestie 🐣
+                </p>
               </div>
-              <span className='text-[10px] font-bold text-pink-600 bg-pink-50 px-2 py-1 rounded-lg'>
-                H-{data.upcomingBill.daysLeft}
-              </span>
-            </div>
-            <div>
-              <p className='text-xs text-text-muted font-medium mb-1'>
-                {data.upcomingBill.name}
-              </p>
-              <p className='font-bold text-sm text-text-main'>
-                {formatRupiah(data.upcomingBill.amount)}
-              </p>
-            </div>
+            ) : (
+              recentTransactions.map((txn) => (
+                <div
+                  key={txn.id}
+                  className='bg-white/90 backdrop-blur-sm p-3 rounded-[1.5rem] border-2 border-pastel-pink/30 shadow-sm flex justify-between items-center hover:border-pastel-pink hover:-translate-y-0.5 transition-all'
+                >
+                  <div className='flex-1 min-w-0 mr-3'>
+                    <p className='font-bold text-text-main text-sm mb-0.5 truncate'>
+                      {txn.title}
+                    </p>
+                    <div className='flex gap-2 text-[10px] font-bold text-text-muted'>
+                      <span className='capitalize'>{txn.category}</span>
+                    </div>
+                  </div>
+                  <p
+                    className={`font-black text-sm whitespace-nowrap ${txn.type === 'expense' ? 'text-red-500' : txn.type === 'income' ? 'text-green-500' : 'text-text-main'}`}
+                  >
+                    {txn.type === 'expense'
+                      ? '-'
+                      : txn.type === 'income'
+                        ? '+'
+                        : ''}
+                    {formatRupiah(txn.amount)}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
-        </section>
-
-        {/* Quick Analytics Banner */}
-        <section className="bg-text-main text-white p-5 rounded-3xl shadow-md mb-6 flex justify-between items-center bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] bg-blend-overlay">
-          <div>
-            <h3 className='font-bold mb-1'>Top Spend This Week</h3>
-            <p className='text-sm text-white/70'>F&B (Rp350K) 🍔</p>
-          </div>
-          <button className='bg-white/20 px-4 py-2 rounded-xl text-sm font-bold backdrop-blur-sm hover:bg-white/30 transition-colors'>
-            Spill Grafik
-          </button>
         </section>
       </div>
-
-      {/* Floating Bottom Navigation Bar */}
-      <nav className='fixed bottom-6 left-1/2 -translate-x-1/2 w-[90%] max-w-[400px] bg-white/90 backdrop-blur-lg rounded-3xl shadow-xl border border-pastel-purple/20 px-6 py-4 flex justify-between items-center z-50'>
-        <button className='text-text-main flex flex-col items-center gap-1 transition-transform hover:-translate-y-1'>
-          <Home className='w-6 h-6' />
-        </button>
-        <button className='text-text-muted hover:text-text-main flex flex-col items-center gap-1 transition-transform hover:-translate-y-1'>
-          <PieChart className='w-6 h-6' />
-        </button>
-
-        {/* Center FAB */}
-        <div className='relative -top-8'>
-          <button className='w-14 h-14 bg-text-main text-white rounded-full flex items-center justify-center shadow-[0_8px_30px_rgb(0,0,0,0.12)] hover:scale-105 active:scale-95 transition-all ring-4 ring-[#FAFAF9]'>
-            <Plus className='w-6 h-6' />
-          </button>
-        </div>
-
-        <button className='text-text-muted hover:text-text-main flex flex-col items-center gap-1 transition-transform hover:-translate-y-1'>
-          <CreditCard className='w-6 h-6' />
-        </button>
-        <button className='text-text-muted hover:text-text-main flex flex-col items-center gap-1 transition-transform hover:-translate-y-1 relative'>
-          <MessageSquare className='w-6 h-6' />
-          <span className='absolute -top-1 -right-1 w-3 h-3 bg-pastel-pink rounded-full border-2 border-white animate-bounce'></span>
-        </button>
-      </nav>
     </main>
   );
 }
