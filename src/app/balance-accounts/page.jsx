@@ -73,7 +73,7 @@ export default function AccountsManager() {
     const loadData = async () => {
       let accs = (await db.getItem('accounts')) || [];
 
-      // --- BUG FIX: INITIALIZE DEFAULT "CASH" ACCOUNT ---
+      // Auto-create Cash account if completely empty
       if (accs.length === 0) {
         const defaultCash = { id: 'cash', name: 'Cash', balance: 0 };
         accs = [defaultCash];
@@ -116,8 +116,7 @@ export default function AccountsManager() {
       0,
     );
 
-    // Kalo user masukin modal awal pas bikin dompet, kita catat sebagai "Income" aja
-    // biar total cuannya sinkron.
+    // Kalo user masukin modal awal pas bikin dompet, catat sebagai "Income"
     if (initialBalance > 0) {
       const currentIncome = (await db.getItem('income')) || 0;
       await db.setItem('income', currentIncome + initialBalance);
@@ -245,7 +244,6 @@ export default function AccountsManager() {
 
   return (
     <main className='min-h-screen bg-bg relative overflow-x-hidden font-sans pb-32'>
-      {/* Background Soft Glow */}
       <div className='absolute top-[-5%] left-[-10%] w-64 h-64 bg-primary/20 rounded-full mix-blend-multiply filter blur-[80px] z-0 pointer-events-none'></div>
 
       <motion.div
@@ -273,7 +271,7 @@ export default function AccountsManager() {
         {/* TOTAL BALANCE CARD */}
         <motion.section
           variants={itemVariants}
-          className='bg-surface/80 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-sm border border-border mb-8 text-text-primary relative overflow-hidden transition-colors'
+          className='bg-surface/80 backdrop-blur-xl p-6 rounded-[2.5rem] shadow-sm border border-border mb-4 text-text-primary relative overflow-hidden transition-colors'
         >
           <div className='absolute top-0 right-0 w-40 h-40 bg-primary/10 rounded-full blur-3xl -mr-10 -mt-10 pointer-events-none'></div>
 
@@ -288,6 +286,36 @@ export default function AccountsManager() {
             </div>
           </div>
         </motion.section>
+
+        {/* --- INLINE ACTION BUTTONS (UX TERBARU) --- */}
+        <motion.div
+          variants={itemVariants}
+          className='grid grid-cols-2 gap-3 mb-8'
+        >
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={() => setIsModalOpen(true)}
+            className='bg-primary hover:bg-primary-hover text-surface p-4 rounded-[1.5rem] font-bold text-sm shadow-sm flex items-center justify-center gap-2 transition-colors'
+          >
+            <Plus className='w-5 h-5 stroke-[3]' /> Tambah
+          </motion.button>
+
+          {accounts.length >= 2 ? (
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={handleOpenTransfer}
+              className='bg-surface/80 backdrop-blur-md border border-border text-text-primary p-4 rounded-[1.5rem] font-bold text-sm shadow-sm flex items-center justify-center gap-2 hover:border-primary/50 transition-colors'
+            >
+              <ArrowRightLeft className='w-5 h-5 text-primary' /> Transfer
+            </motion.button>
+          ) : (
+            <div className='bg-surface/50 border border-dashed border-border rounded-[1.5rem] flex items-center justify-center text-text-secondary/60 text-[11px] font-bold px-4 text-center leading-tight'>
+              Tambah 1 dompet lagi untuk fitur transfer
+            </div>
+          )}
+        </motion.div>
 
         {/* LIST ACCOUNTS */}
         <motion.section variants={itemVariants}>
@@ -347,34 +375,6 @@ export default function AccountsManager() {
           </div>
         </motion.section>
       </motion.div>
-
-      {/* DYNAMIC FLOATING ACTION BUTTONS */}
-      <div
-        className={`fixed bottom-6 left-1/2 -translate-x-1/2 w-[92%] max-w-[420px] z-40 grid gap-3 ${accounts.length >= 2 ? 'grid-cols-2' : 'grid-cols-1'}`}
-      >
-        {accounts.length >= 2 && (
-          <motion.button
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={handleOpenTransfer}
-            className='w-full py-4 bg-surface/90 backdrop-blur-xl text-text-primary border border-border font-black rounded-[1.5rem] shadow-[0_10px_25px_rgb(0,0,0,0.05)] transition-all flex items-center justify-center gap-2 hover:border-primary/50'
-          >
-            <ArrowRightLeft className='w-5 h-5 text-primary' /> Transfer
-          </motion.button>
-        )}
-        <motion.button
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={() => setIsModalOpen(true)}
-          className='w-full py-4 bg-gradient-to-tr from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_25px_rgb(220,198,255,0.4)] dark:shadow-[0_10px_25px_rgb(155,126,222,0.3)] transition-all flex items-center justify-center gap-2 border border-white/20'
-        >
-          <Plus className='w-5 h-5 stroke-[3]' /> Tambah
-        </motion.button>
-      </div>
 
       {/* --- MODAL TAMBAH SUMBER (BOTTOM SHEET) --- */}
       <AnimatePresence>
@@ -450,7 +450,7 @@ export default function AccountsManager() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleAddAccount}
-                className='w-full py-4 bg-gradient-to-r from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] dark:shadow-[0_10px_20px_rgb(155,126,222,0.2)] mt-2'
+                className='w-full py-4 bg-gradient-to-r from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] mt-2'
               >
                 Simpan Dompet
               </motion.button>
@@ -591,7 +591,7 @@ export default function AccountsManager() {
                 whileTap={{ scale: 0.98 }}
                 onClick={handleTransfer}
                 disabled={isTransferDisabled}
-                className='w-full py-4 bg-gradient-to-r from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed mt-2'
+                className='w-full py-4 bg-gradient-to-r from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed mt-2 border border-white/20'
               >
                 Proses Transfer
               </motion.button>

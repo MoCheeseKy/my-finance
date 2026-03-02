@@ -17,7 +17,6 @@ import {
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
-// --- ANIMATION VARIANTS ---
 const containerVariants = {
   hidden: { opacity: 0 },
   show: {
@@ -46,7 +45,6 @@ export default function Dashboard() {
   });
   const [recentTransactions, setRecentTransactions] = useState([]);
 
-  // Mock fetching logic (keep your existing robust logic here)
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -78,7 +76,6 @@ export default function Dashboard() {
       } catch (error) {
         console.error('Waduh, gagal nge-load data nih bestie:', error);
       } finally {
-        // Simulasi delay sedikit agar animasi mulus terlihat
         setTimeout(() => setIsLoading(false), 800);
       }
     };
@@ -105,7 +102,7 @@ export default function Dashboard() {
           <Sparkles className='text-primary w-8 h-8' />
         </motion.div>
         <p className='text-text-secondary font-medium tracking-wide animate-pulse'>
-          Menyiapkan dompetmu... ✨
+          Menyiapkan dompetmu...
         </p>
       </div>
     );
@@ -113,7 +110,6 @@ export default function Dashboard() {
 
   return (
     <main className='min-h-screen bg-bg pb-28 font-sans selection:bg-primary/30'>
-      {/* Soft Background Blob */}
       <div className='absolute top-[-10%] left-[-10%] w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 z-0 dark:opacity-40'></div>
 
       <div className='relative z-10 p-6 max-w-md mx-auto'>
@@ -143,14 +139,12 @@ export default function Dashboard() {
             </div>
           </motion.header>
 
-          {/* NET WORTH HERO CARD */}
           <motion.section
             variants={itemVariants}
             className='mb-6 group cursor-pointer'
             onClick={() => router.push('/balance-accounts')}
           >
             <div className='relative overflow-hidden bg-gradient-to-br from-primary to-primary-hover p-7 rounded-[2.5rem] shadow-[0_15px_35px_rgb(220,198,255,0.4)] dark:shadow-[0_15px_35px_rgb(155,126,222,0.2)] transition-transform duration-300 group-hover:scale-[1.02]'>
-              {/* Glass Details */}
               <div className='absolute -right-8 -top-8 w-40 h-40 bg-white/20 rounded-full blur-2xl'></div>
               <div className='absolute right-6 top-6 w-12 h-12 bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner'>
                 <Wallet className='w-6 h-6 text-stone-900' />

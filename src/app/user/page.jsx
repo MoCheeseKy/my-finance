@@ -488,7 +488,7 @@ export default function UserPage() {
 
         <motion.div variants={itemVariants} className='text-center mt-10'>
           <p className='text-text-secondary/50 text-[10px] font-black uppercase tracking-widest'>
-            My Finance • v1.0.0
+            MyFinance • v1.0.0
           </p>
         </motion.div>
       </motion.div>
@@ -559,7 +559,7 @@ export default function UserPage() {
                       <Database className='w-10 h-10 text-primary -rotate-3' />
                     </div>
                     <h4 className='font-black text-center text-2xl text-text-primary'>
-                      Catat Dulu Ygy
+                      MyFinance
                     </h4>
                     <p className='text-center text-text-secondary/70 text-xs font-bold tracking-widest uppercase mb-6'>
                       Versi 1.0.0
