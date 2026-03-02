@@ -16,6 +16,9 @@ import {
   Repeat,
   X,
   Download,
+  Filter,
+  ArrowUpRight,
+  ArrowDownRight,
 } from 'lucide-react';
 import {
   format,
@@ -35,6 +38,41 @@ import {
 } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
 import { Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// --- FRAMER MOTION VARIANTS ---
+const pageVariants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      staggerChildren: 0.1,
+      delayChildren: 0.1,
+      type: 'spring',
+      damping: 20,
+    },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 300, damping: 24 },
+  },
+};
+
+const bottomSheetVariants = {
+  hidden: { y: '100%', opacity: 0 },
+  visible: {
+    y: 0,
+    opacity: 1,
+    transition: { type: 'spring', damping: 25, stiffness: 200 },
+  },
+  exit: { y: '100%', opacity: 0, transition: { duration: 0.2 } },
+};
 
 export default function Insights() {
   const router = useRouter();
@@ -145,7 +183,6 @@ export default function Insights() {
       .sort((a, b) => b.value - a.value);
   }, [currentPeriodTxns]);
 
-  // Cari Top Pengeluaran dan Top Pemasukan (Tertinggi di period tersebut)
   const topTransactions = useMemo(() => {
     let topExpense = null;
     let topIncome = null;
@@ -162,20 +199,19 @@ export default function Insights() {
   }, [currentPeriodTxns]);
 
   const COLORS = [
-    '#ffb6c1',
-    '#e6e6fa',
-    '#b0e0e6',
-    '#98fb98',
-    '#ffdab9',
-    '#ff9999',
-    '#e0b0ff',
+    '#dcc6ff',
+    '#ffd6a5',
+    '#f8c8dc',
+    '#8ed081',
+    '#ff8c8c',
+    '#a5b4fc',
+    '#ffd166',
   ];
 
   const activeSubscriptions = useMemo(() => {
     const subsTxns = transactions.filter(
       (t) => t.type === 'expense' && t.category === 'tetap',
     );
-
     const uniqueSubsMap = new Map();
     subsTxns.forEach((t) => {
       const existing = uniqueSubsMap.get(t.title);
@@ -224,9 +260,8 @@ export default function Insights() {
   };
 
   const handleExportCSV = () => {
-    if (filteredList.length === 0) {
-      return alert('Belum ada transaksi buat di-export, bestie! ');
-    }
+    if (filteredList.length === 0)
+      return alert('Belum ada transaksi buat di-export, bestie!');
 
     const headers = [
       'Tanggal',
@@ -235,7 +270,6 @@ export default function Insights() {
       'Tipe',
       'Nominal (Rp)',
     ];
-
     const rows = filteredList.map((txn) => {
       const dateStr = format(new Date(txn.date), 'yyyy-MM-dd');
       const titleClean = `"${txn.title.replace(/"/g, '""')}"`;
@@ -263,7 +297,6 @@ export default function Insights() {
       ...rows.map((r) => r.join(',')),
       ...summaryRows.map((r) => r.join(',')),
     ].join('\n');
-
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -277,21 +310,35 @@ export default function Insights() {
   };
 
   return (
-    <main className='min-h-screen bg-bg pb-28 relative transition-colors duration-300'>
-      <div className='absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-surface/80 to-transparent z-0'></div>
+    <main className='min-h-screen bg-bg relative overflow-x-hidden font-sans pb-28'>
+      {/* Background Soft Glow */}
+      <div className='absolute top-[-5%] right-[-10%] w-64 h-64 bg-primary/20 rounded-full mix-blend-multiply filter blur-[80px] z-0 pointer-events-none'></div>
 
-      <div className='relative z-10 p-6 max-w-md mx-auto'>
-        <header className='flex items-center gap-4 mb-6 pt-2'>
-          <button
+      <motion.div
+        variants={pageVariants}
+        initial='hidden'
+        animate='visible'
+        className='relative z-10 p-6 max-w-md mx-auto'
+      >
+        <header className='flex items-center gap-4 mb-8 pt-2'>
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onClick={() => router.back()}
-            className='w-10 h-10 bg-surface rounded-[1rem] flex items-center justify-center shadow-sm border border-border hover:bg-surface-hover transition-colors group'
+            className='w-11 h-11 bg-surface/80 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-sm border border-border transition-colors group'
           >
             <ArrowLeft className='w-5 h-5 text-text-primary group-hover:text-primary transition-colors' />
-          </button>
-          <h1 className='text-xl font-black text-text-primary'>Analytics </h1>
+          </motion.button>
+          <h1 className='text-xl font-black text-text-primary tracking-tight'>
+            Analytics
+          </h1>
         </header>
 
-        <div className='flex bg-surface/80 backdrop-blur-sm p-1.5 rounded-[1.5rem] shadow-sm border-2 border-border mb-6 transition-colors'>
+        {/* PERIOD SELECTOR */}
+        <motion.div
+          variants={itemVariants}
+          className='relative flex bg-surface/80 backdrop-blur-sm p-1.5 rounded-[1.5rem] shadow-inner border border-border mb-6'
+        >
           {['daily', 'weekly', 'monthly'].map((p) => (
             <button
               key={p}
@@ -299,43 +346,58 @@ export default function Insights() {
                 setPeriod(p);
                 setCurrentDate(new Date());
               }}
-              className={`flex-1 py-2 text-xs font-bold rounded-xl capitalize transition-all ${period === p ? 'bg-primary text-text-primary shadow-sm border border-surface' : 'text-text-secondary hover:bg-surface/60'}`}
+              className={`relative flex-1 py-3 text-xs font-bold rounded-[1.2rem] z-10 capitalize transition-colors ${period === p ? 'text-text-primary' : 'text-text-secondary hover:text-text-primary'}`}
             >
               {p === 'daily'
                 ? 'Harian'
                 : p === 'weekly'
                   ? 'Mingguan'
                   : 'Bulanan'}
+              {period === p && (
+                <motion.div
+                  layoutId='active-period'
+                  className='absolute inset-0 bg-surface rounded-[1.2rem] -z-10 shadow-sm border border-border'
+                  transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                />
+              )}
             </button>
           ))}
-        </div>
+        </motion.div>
 
-        <div className='flex items-center justify-between bg-surface p-4 rounded-3xl border border-border shadow-sm mb-6 transition-colors'>
+        {/* DATE NAVIGATOR */}
+        <motion.div
+          variants={itemVariants}
+          className='flex items-center justify-between bg-surface/80 backdrop-blur-md p-2 rounded-[1.5rem] border border-border shadow-sm mb-6'
+        >
           <button
             onClick={handlePrev}
-            className='w-8 h-8 flex items-center justify-center rounded-full hover:bg-bg-hover text-text-secondary transition-colors'
+            className='w-10 h-10 flex items-center justify-center rounded-[1rem] hover:bg-bg transition-colors text-text-secondary hover:text-primary'
           >
             <ChevronLeft className='w-5 h-5' />
           </button>
-          <p className='font-black text-text-primary text-sm'>
+          <p className='font-black text-text-primary text-sm tracking-wide'>
             {headerDateLabel()}
           </p>
           <button
             onClick={handleNext}
-            className='w-8 h-8 flex items-center justify-center rounded-full hover:bg-bg-hover text-text-secondary transition-colors'
+            className='w-10 h-10 flex items-center justify-center rounded-[1rem] hover:bg-bg transition-colors text-text-secondary hover:text-primary'
           >
             <ChevronRight className='w-5 h-5' />
           </button>
-        </div>
+        </motion.div>
 
-        <section className='bg-surface/90 backdrop-blur-sm p-5 rounded-[2rem] border-2 border-border shadow-sm mb-6 space-y-4 hover:shadow-md transition-all'>
-          <div className='flex justify-between items-center border-b border-border pb-4'>
-            <div>
-              <p className='text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1'>
+        {/* SUMMARY CARDS (Bento) */}
+        <motion.section
+          variants={itemVariants}
+          className='grid grid-cols-2 gap-3 mb-6'
+        >
+          <div className='bg-surface/80 backdrop-blur-xl p-5 rounded-[2rem] border border-border shadow-sm flex flex-col gap-2'>
+            <div className='flex justify-between items-start mb-2'>
+              <p className='text-[10px] font-black text-text-secondary uppercase tracking-wider'>
                 Pemasukan
               </p>
               <div
-                className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg inline-flex ${incomePercentage > 0 ? 'bg-income/10 text-income' : incomePercentage < 0 ? 'bg-expense/10 text-expense' : 'bg-bg-hover text-text-secondary'}`}
+                className={`flex items-center gap-0.5 text-[9px] font-bold px-2 py-1 rounded-md ${incomePercentage > 0 ? 'bg-income/10 text-income' : incomePercentage < 0 ? 'bg-expense/10 text-expense' : 'bg-bg text-text-secondary'}`}
               >
                 {incomePercentage > 0 ? (
                   <TrendingUp className='w-3 h-3' />
@@ -347,18 +409,18 @@ export default function Insights() {
                 {Math.abs(incomePercentage)}%
               </div>
             </div>
-            <p className='text-2xl font-black text-income truncate max-w-[55%] text-right'>
+            <p className='text-xl font-black text-income truncate'>
               {formatRupiah(currentTotals.income)}
             </p>
           </div>
 
-          <div className='flex justify-between items-center'>
-            <div>
-              <p className='text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1'>
+          <div className='bg-surface/80 backdrop-blur-xl p-5 rounded-[2rem] border border-border shadow-sm flex flex-col gap-2'>
+            <div className='flex justify-between items-start mb-2'>
+              <p className='text-[10px] font-black text-text-secondary uppercase tracking-wider'>
                 Pengeluaran
               </p>
               <div
-                className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-lg inline-flex ${expensePercentage > 0 ? 'bg-expense/10 text-expense' : expensePercentage < 0 ? 'bg-income/10 text-income' : 'bg-bg-hover text-text-secondary'}`}
+                className={`flex items-center gap-0.5 text-[9px] font-bold px-2 py-1 rounded-md ${expensePercentage > 0 ? 'bg-expense/10 text-expense' : expensePercentage < 0 ? 'bg-income/10 text-income' : 'bg-bg text-text-secondary'}`}
               >
                 {expensePercentage > 0 ? (
                   <TrendingUp className='w-3 h-3' />
@@ -370,322 +432,396 @@ export default function Insights() {
                 {Math.abs(expensePercentage)}%
               </div>
             </div>
-            <p className='text-2xl font-black text-expense truncate max-w-[55%] text-right'>
+            <p className='text-xl font-black text-expense truncate'>
               {formatRupiah(currentTotals.expense)}
             </p>
           </div>
-        </section>
+        </motion.section>
 
-        <div className='grid grid-cols-2 gap-3 mb-8'>
-          <button
+        {/* ACTION BUTTONS */}
+        <motion.div
+          variants={itemVariants}
+          className='grid grid-cols-2 gap-3 mb-8'
+        >
+          <motion.button
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => setIsGraphDrawerOpen(true)}
-            className='bg-surface/90 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-border shadow-sm flex flex-col items-center justify-center gap-2 hover:border-primary hover:-translate-y-1 transition-all'
+            className='bg-gradient-to-br from-surface to-surface/50 backdrop-blur-md p-4 rounded-[1.5rem] border border-border shadow-sm flex items-center gap-3 hover:border-primary/50 transition-colors group'
           >
-            <div className='w-12 h-12 bg-bg-hover rounded-[1rem] flex items-center justify-center border border-border shadow-inner'>
-              <PieChartIcon className='w-5 h-5 text-investment' />
+            <div className='w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center group-hover:bg-primary/20 transition-colors'>
+              <PieChartIcon className='w-5 h-5 text-primary' />
             </div>
-            <span className='text-xs font-bold text-text-primary'>
-              Spill Grafik
+            <span className='text-xs font-bold text-text-primary text-left leading-tight'>
+              Spill
+              <br />
+              Grafik
             </span>
-          </button>
-          <button
+          </motion.button>
+
+          <motion.button
+            whileHover={{ y: -2 }}
+            whileTap={{ scale: 0.96 }}
             onClick={() => setIsSubsDrawerOpen(true)}
-            className='bg-surface/90 backdrop-blur-sm p-4 rounded-[2rem] border-2 border-border shadow-sm flex flex-col items-center justify-center gap-2 hover:border-primary hover:-translate-y-1 transition-all'
+            className='bg-gradient-to-br from-surface to-surface/50 backdrop-blur-md p-4 rounded-[1.5rem] border border-border shadow-sm flex items-center gap-3 hover:border-investment/50 transition-colors group'
           >
-            <div className='w-12 h-12 bg-bg-hover rounded-[1rem] flex items-center justify-center border border-border shadow-inner'>
-              <Repeat className='w-5 h-5 text-primary' />
+            <div className='w-10 h-10 bg-investment/10 rounded-full flex items-center justify-center group-hover:bg-investment/20 transition-colors'>
+              <Repeat className='w-5 h-5 text-investment' />
             </div>
-            <span className='text-xs font-bold text-text-primary'>
+            <span className='text-xs font-bold text-text-primary text-left leading-tight'>
+              Cek
+              <br />
               Langganan
             </span>
-          </button>
-        </div>
+          </motion.button>
+        </motion.div>
 
-        {/* TOP TRANSACTIONS SECTION */}
-        <section className='mb-8'>
-          <h3 className='text-sm font-black text-text-primary uppercase tracking-wider mb-4 px-1'>
-            Top Transaksi
+        {/* TOP TRANSACTIONS */}
+        <motion.section variants={itemVariants} className='mb-8'>
+          <h3 className='text-xs font-black text-text-secondary uppercase tracking-widest mb-4 px-1'>
+            High Rollers
           </h3>
           <div className='grid grid-cols-2 gap-3'>
-            {/* Top Income */}
-            <div className='bg-surface/90 backdrop-blur-sm p-4 rounded-[1.5rem] border-2 border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-all'>
-              <h4 className='text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-2'>
-                Top Pemasukan
-              </h4>
+            <div className='bg-surface/80 backdrop-blur-sm p-4 rounded-[1.5rem] border border-border shadow-sm flex flex-col justify-between group'>
+              <div className='flex items-center gap-2 mb-3'>
+                <div className='w-6 h-6 bg-income/10 rounded-full flex items-center justify-center'>
+                  <ArrowDownRight className='w-3.5 h-3.5 text-income' />
+                </div>
+                <h4 className='text-[10px] font-bold text-text-secondary uppercase tracking-wider'>
+                  Top Masuk
+                </h4>
+              </div>
               {topTransactions.topIncome ? (
                 <div>
-                  <p className='font-bold text-text-primary text-sm truncate mb-0.5'>
+                  <p className='font-bold text-text-primary text-xs truncate mb-1'>
                     {topTransactions.topIncome.title}
                   </p>
-                  <p className='text-xl font-black text-income truncate'>
+                  <p className='text-base font-black text-income truncate'>
                     +{formatRupiah(topTransactions.topIncome.amount)}
                   </p>
                 </div>
               ) : (
-                <p className='text-xs font-bold text-text-secondary/60'>
+                <p className='text-xs font-bold text-text-secondary/60 pb-1'>
                   Belum ada data
                 </p>
               )}
             </div>
 
-            {/* Top Expense */}
-            <div className='bg-surface/90 backdrop-blur-sm p-4 rounded-[1.5rem] border-2 border-border shadow-sm flex flex-col justify-between hover:shadow-md transition-all'>
-              <h4 className='text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-2'>
-                Top Pengeluaran
-              </h4>
+            <div className='bg-surface/80 backdrop-blur-sm p-4 rounded-[1.5rem] border border-border shadow-sm flex flex-col justify-between group'>
+              <div className='flex items-center gap-2 mb-3'>
+                <div className='w-6 h-6 bg-expense/10 rounded-full flex items-center justify-center'>
+                  <ArrowUpRight className='w-3.5 h-3.5 text-expense' />
+                </div>
+                <h4 className='text-[10px] font-bold text-text-secondary uppercase tracking-wider'>
+                  Top Keluar
+                </h4>
+              </div>
               {topTransactions.topExpense ? (
                 <div>
-                  <p className='font-bold text-text-primary text-sm truncate mb-0.5'>
+                  <p className='font-bold text-text-primary text-xs truncate mb-1'>
                     {topTransactions.topExpense.title}
                   </p>
-                  <p className='text-xl font-black text-expense truncate'>
+                  <p className='text-base font-black text-expense truncate'>
                     -{formatRupiah(topTransactions.topExpense.amount)}
                   </p>
                 </div>
               ) : (
-                <p className='text-xs font-bold text-text-secondary/60'>
+                <p className='text-xs font-bold text-text-secondary/60 pb-1'>
                   Belum ada data
                 </p>
               )}
             </div>
           </div>
-        </section>
+        </motion.section>
 
-        <section>
-          <div className='flex justify-between items-end mb-4 px-1'>
-            <h3 className='text-sm font-black text-text-primary uppercase tracking-wider'>
+        {/* HISTORY SECTION */}
+        <motion.section variants={itemVariants}>
+          <div className='flex justify-between items-center mb-4 px-1'>
+            <h3 className='text-xs font-black text-text-secondary uppercase tracking-widest'>
               Riwayat
             </h3>
-
             <div className='flex items-center gap-2'>
               <button
                 onClick={handleExportCSV}
-                className='flex items-center gap-1 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors border border-primary/20'
+                className='flex items-center gap-1.5 text-[10px] font-bold text-primary bg-primary/10 hover:bg-primary/20 px-3 py-1.5 rounded-lg transition-colors border border-primary/20'
               >
-                <Download className='w-3 h-3' /> Export
+                <Download className='w-3 h-3' /> CSV
               </button>
-              <span className='text-xs font-bold text-text-secondary bg-bg-hover px-2 py-1.5 rounded-lg border border-border'>
+              <span className='text-[10px] font-bold text-text-secondary bg-surface px-2.5 py-1.5 rounded-lg border border-border'>
                 {filteredList.length} Trx
               </span>
             </div>
           </div>
 
+          {/* Filters */}
           <div className='flex gap-2 mb-4'>
-            <div className='flex-1 bg-surface flex items-center px-4 py-3 rounded-2xl border border-border focus-within:border-primary transition-colors'>
+            <div className='flex-1 bg-surface/80 backdrop-blur-sm flex items-center px-4 py-3 rounded-[1.2rem] border border-border focus-within:border-primary transition-colors shadow-sm'>
               <Search className='w-4 h-4 text-text-secondary mr-2' />
               <input
                 type='text'
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder='Cari riwayat...'
-                className='w-full bg-transparent outline-none text-sm font-bold placeholder:font-normal text-text-primary'
+                placeholder='Cari transaksi...'
+                className='w-full bg-transparent outline-none text-sm font-semibold placeholder:font-normal text-text-primary'
               />
             </div>
 
-            <select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              className='bg-surface border border-border rounded-2xl px-3 py-3 text-sm font-bold text-text-secondary outline-none hover:bg-bg-hover transition-colors w-24'
-            >
-              <option value='all'>All Kategori</option>
-              <option value='gaji'>Gaji</option>
-              <option value='bonus'>Bonus</option>
-              <option value='makanan'>Makanan</option>
-              <option value='transportasi'>Transportasi</option>
-              <option value='hiburan'>Hiburan</option>
-              <option value='tagihan'>Tagihan</option>
-              <option value='belanja'>Belanja</option>
-              <option value='kesehatan'>Kesehatan</option>
-              <option value='pendidikan'>Pendidikan</option>
-              <option value='lainnya'>Lainnya</option>
-            </select>
+            <div className='relative bg-surface/80 backdrop-blur-sm border border-border rounded-[1.2rem] flex items-center px-3 shadow-sm hover:border-primary/50 transition-colors'>
+              <Filter className='w-4 h-4 text-text-secondary absolute left-3 pointer-events-none' />
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className='w-24 bg-transparent outline-none text-xs font-bold text-text-primary pl-6 py-3 appearance-none cursor-pointer'
+              >
+                <option value='all'>Semua</option>
+                <option value='gaji'>Gaji</option>
+                <option value='bonus'>Bonus</option>
+                <option value='pokok'>Pokok</option>
+                <option value='keinginan'>Keinginan</option>
+                <option value='tetap'>Tetap</option>
+              </select>
+            </div>
 
-            <div className='relative bg-surface border border-border rounded-2xl flex items-center justify-center px-3 w-12 hover:bg-bg-hover transition-colors'>
+            <div className='relative bg-surface/80 backdrop-blur-sm border border-border rounded-[1.2rem] flex items-center justify-center px-3 w-12 hover:border-primary/50 transition-colors shadow-sm group'>
               <input
                 type='date'
                 value={selectedDate}
                 onChange={(e) => setSelectedDate(e.target.value)}
-                className='absolute inset-0 opacity-0 cursor-pointer w-full h-full'
+                className='absolute inset-0 opacity-0 cursor-pointer w-full h-full z-10'
               />
               <CalendarIcon
-                className={`w-5 h-5 ${selectedDate ? 'text-text-primary' : 'text-text-secondary'}`}
+                className={`w-4 h-4 transition-colors ${selectedDate ? 'text-primary' : 'text-text-secondary group-hover:text-primary'}`}
               />
             </div>
           </div>
 
+          {/* List */}
           <div className='space-y-3'>
-            {filteredList.length === 0 ? (
-              <div className='text-center py-10 bg-surface rounded-3xl border border-border border-dashed'>
-                <p className='text-text-secondary font-bold text-sm'>
-                  Kosong nih bestie
-                </p>
-              </div>
-            ) : (
-              filteredList
-                .sort((a, b) => b.date.localeCompare(a.date))
-                .map((txn) => (
-                  <div
-                    key={txn.id}
-                    className='bg-surface p-4 rounded-[1.5rem] border-2 border-border shadow-sm flex justify-between items-center hover:border-text-secondary/50 transition-all'
-                  >
-                    <div className='flex-1 min-w-0 mr-3'>
-                      <p className='font-bold text-text-primary text-sm mb-1 truncate'>
-                        {txn.title}
-                      </p>
-                      <div className='flex gap-2 text-[10px] font-bold text-text-secondary'>
-                        <span className='capitalize'>{txn.category}</span> •{' '}
-                        <span>{format(new Date(txn.date), 'dd MMM')}</span>
+            <AnimatePresence>
+              {filteredList.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className='text-center py-10 bg-surface/50 backdrop-blur-sm rounded-[2rem] border border-border border-dashed'
+                >
+                  <p className='text-text-secondary font-bold text-sm'>
+                    Tidak ada transaksi ditemukan.
+                  </p>
+                </motion.div>
+              ) : (
+                filteredList
+                  .sort((a, b) => b.date.localeCompare(a.date))
+                  .map((txn, idx) => (
+                    <motion.div
+                      key={txn.id}
+                      initial={{ opacity: 0, x: -10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: idx * 0.05 }}
+                      className='bg-surface/80 backdrop-blur-sm p-4 rounded-[1.5rem] border border-border shadow-sm flex justify-between items-center hover:border-primary/30 hover:shadow-md transition-all'
+                    >
+                      <div className='flex-1 min-w-0 mr-3'>
+                        <p className='font-bold text-text-primary text-sm mb-0.5 truncate'>
+                          {txn.title}
+                        </p>
+                        <div className='flex items-center gap-2 text-[10px] font-bold text-text-secondary'>
+                          <span className='capitalize bg-bg px-2 py-0.5 rounded-md'>
+                            {txn.category}
+                          </span>
+                          <span>{format(new Date(txn.date), 'dd MMM')}</span>
+                        </div>
                       </div>
-                    </div>
-                    <p
-                      className={`font-black text-sm whitespace-nowrap ${txn.type === 'expense' ? 'text-expense' : txn.type === 'income' ? 'text-income' : 'text-text-primary'}`}
-                    >
-                      {txn.type === 'expense'
-                        ? '-'
-                        : txn.type === 'income'
-                          ? '+'
-                          : ''}
-                      {formatRupiah(txn.amount)}
-                    </p>
-                  </div>
-                ))
-            )}
-          </div>
-        </section>
-      </div>
-
-      {/* =========================================
-          DRAWER GRAFIK KATEGORI 
-      ========================================= */}
-      {isGraphDrawerOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 border border-border'>
-            <div className='flex justify-between items-center mb-6'>
-              <h3 className='font-black text-xl text-text-primary'>
-                Distribusi Kategori
-              </h3>
-              <button
-                onClick={() => setIsGraphDrawerOpen(false)}
-                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
-              >
-                <X className='w-5 h-5' />
-              </button>
-            </div>
-
-            {categoryData.length > 0 ? (
-              <div className='flex flex-col items-center'>
-                <div className='h-56 w-full'>
-                  <ResponsiveContainer width='100%' height='100%'>
-                    <PieChart>
-                      <Pie
-                        data={categoryData}
-                        innerRadius={70}
-                        outerRadius={90}
-                        paddingAngle={5}
-                        dataKey='value'
+                      <p
+                        className={`font-black text-sm whitespace-nowrap ${txn.type === 'expense' ? 'text-expense' : 'text-income'}`}
                       >
-                        {categoryData.map((entry, index) => (
-                          <Cell
-                            key={`cell-${index}`}
-                            fill={COLORS[index % COLORS.length]}
-                            stroke='transparent'
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip formatter={(value) => formatRupiah(value)} />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-                <div className='w-full mt-4 space-y-3 max-h-[30vh] overflow-y-auto scrollbar-hide'>
-                  {categoryData.map((cat, idx) => (
-                    <div
-                      key={cat.name}
-                      className='flex justify-between items-center bg-bg-hover p-3 rounded-2xl border border-border'
-                    >
-                      <div className='flex items-center gap-3'>
-                        <div
-                          className='w-4 h-4 rounded-full shadow-sm'
-                          style={{
-                            backgroundColor: COLORS[idx % COLORS.length],
+                        {txn.type === 'expense' ? '-' : '+'}
+                        {formatRupiah(txn.amount)}
+                      </p>
+                    </motion.div>
+                  ))
+              )}
+            </AnimatePresence>
+          </div>
+        </motion.section>
+      </motion.div>
+
+      {/* --- BOTTOM SHEET: GRAFIK KATEGORI --- */}
+      <AnimatePresence>
+        {isGraphDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsGraphDrawerOpen(false)}
+              className='fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto flex flex-col max-h-[90vh]'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6 flex-shrink-0'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <PieChartIcon className='w-6 h-6 text-primary' /> Distribusi
+                  Kategori
+                </h3>
+                <button
+                  onClick={() => setIsGraphDrawerOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+
+              {categoryData.length > 0 ? (
+                <div className='flex flex-col items-center flex-1 overflow-hidden'>
+                  <div className='h-56 w-full flex-shrink-0'>
+                    <ResponsiveContainer width='100%' height='100%'>
+                      <PieChart>
+                        <Pie
+                          data={categoryData}
+                          innerRadius={65}
+                          outerRadius={90}
+                          paddingAngle={5}
+                          dataKey='value'
+                          stroke='none'
+                        >
+                          {categoryData.map((entry, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={(value) => formatRupiah(value)}
+                          contentStyle={{
+                            backgroundColor: 'var(--surface)',
+                            borderRadius: '1rem',
+                            border: '1px solid var(--border)',
+                            fontWeight: 'bold',
                           }}
-                        ></div>
-                        <span className='font-bold text-text-primary text-sm'>
-                          {cat.name}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  <div className='w-full mt-6 space-y-3 overflow-y-auto scrollbar-hide pb-4'>
+                    {categoryData.map((cat, idx) => (
+                      <div
+                        key={cat.name}
+                        className='flex justify-between items-center bg-bg p-3.5 rounded-[1.2rem] border border-border'
+                      >
+                        <div className='flex items-center gap-3'>
+                          <div
+                            className='w-3.5 h-3.5 rounded-full'
+                            style={{
+                              backgroundColor: COLORS[idx % COLORS.length],
+                            }}
+                          ></div>
+                          <span className='font-bold text-text-primary text-sm'>
+                            {cat.name}
+                          </span>
+                        </div>
+                        <span className='font-black text-text-primary text-sm'>
+                          {formatRupiah(cat.value)}
                         </span>
                       </div>
-                      <span className='font-black text-text-primary'>
-                        {formatRupiah(cat.value)}
-                      </span>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ) : (
-              <p className='text-center text-sm font-bold text-text-secondary py-10'>
-                Belum ada pengeluaran periode ini
-              </p>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* =========================================
-          DRAWER LANGGANAN
-      ========================================= */}
-      {isSubsDrawerOpen && (
-        <div className='fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200'>
-          <div className='bg-surface w-full max-w-md rounded-[2.5rem] p-6 shadow-2xl animate-in slide-in-from-bottom-10 duration-300 flex flex-col max-h-[85vh] border border-border'>
-            <div className='flex justify-between items-center mb-6 flex-shrink-0'>
-              <h3 className='font-black text-xl text-text-primary'>
-                Daftar Langganan
-              </h3>
-              <button
-                onClick={() => setIsSubsDrawerOpen(false)}
-                className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
-              >
-                <X className='w-5 h-5' />
-              </button>
-            </div>
-
-            <div className='bg-primary/10 p-5 rounded-[2rem] text-text-primary mb-6 flex-shrink-0 relative overflow-hidden border-2 border-primary/20 shadow-sm'>
-              <div className='relative z-10'>
-                <p className='text-[10px] font-bold text-text-secondary uppercase tracking-wider mb-1'>
-                  Proyeksi Beban Bulanan
-                </p>
-                <h4 className='text-2xl font-black text-text-primary drop-shadow-sm'>
-                  {formatRupiah(projectedMonthlySubs)}
-                </h4>
-              </div>
-              <div className='absolute -bottom-6 -right-6 w-24 h-24 bg-primary/20 rounded-full blur-xl'></div>
-            </div>
-
-            <div className='overflow-y-auto scrollbar-hide space-y-3 pb-4 flex-1'>
-              {activeSubscriptions.length === 0 ? (
-                <p className='text-center text-sm font-bold text-text-secondary py-6'>
-                  Aman, nggak ada tagihan rutin!
-                </p>
               ) : (
-                activeSubscriptions.map((sub, idx) => (
-                  <div
-                    key={idx}
-                    className='bg-bg-hover border border-border p-4 rounded-2xl flex justify-between items-center'
-                  >
-                    <div>
-                      <p className='font-bold text-text-primary'>{sub.title}</p>
-                      <p className='text-[10px] font-black text-text-secondary uppercase tracking-wider'>
-                        Bayar per {sub.frequency}
-                      </p>
-                    </div>
-                    <p className='font-black text-text-primary'>
-                      {formatRupiah(sub.amount)}
+                <div className='flex-1 flex flex-col items-center justify-center py-10'>
+                  <PieChartIcon className='w-12 h-12 text-border mb-3' />
+                  <p className='text-center text-sm font-bold text-text-secondary'>
+                    Belum ada pengeluaran periode ini.
+                  </p>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* --- BOTTOM SHEET: LANGGANAN --- */}
+      <AnimatePresence>
+        {isSubsDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsSubsDrawerOpen(false)}
+              className='fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto flex flex-col max-h-[90vh]'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6 flex-shrink-0'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <Repeat className='w-6 h-6 text-investment' /> Daftar
+                  Langganan
+                </h3>
+                <button
+                  onClick={() => setIsSubsDrawerOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+
+              <div className='bg-gradient-to-br from-primary/10 to-transparent p-5 rounded-[2rem] text-text-primary mb-6 flex-shrink-0 border border-primary/20 shadow-sm relative overflow-hidden'>
+                <div className='relative z-10'>
+                  <p className='text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1'>
+                    Proyeksi Beban Bulanan
+                  </p>
+                  <h4 className='text-2xl font-black text-text-primary'>
+                    {formatRupiah(projectedMonthlySubs)}
+                  </h4>
+                </div>
+                <div className='absolute -bottom-6 -right-6 w-24 h-24 bg-primary/20 rounded-full blur-xl'></div>
+              </div>
+
+              <div className='overflow-y-auto scrollbar-hide space-y-3 pb-4 flex-1'>
+                {activeSubscriptions.length === 0 ? (
+                  <div className='text-center py-10'>
+                    <p className='text-sm font-bold text-text-secondary'>
+                      Aman, tidak ada tagihan rutin terdeteksi.
                     </p>
                   </div>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      )}
+                ) : (
+                  activeSubscriptions.map((sub, idx) => (
+                    <div
+                      key={idx}
+                      className='bg-bg border border-border p-4 rounded-[1.5rem] flex justify-between items-center'
+                    >
+                      <div>
+                        <p className='font-bold text-text-primary text-sm mb-0.5'>
+                          {sub.title}
+                        </p>
+                        <p className='text-[10px] font-black text-text-secondary uppercase tracking-wider'>
+                          Bayar per {sub.frequency}
+                        </p>
+                      </div>
+                      <p className='font-black text-expense text-sm'>
+                        -{formatRupiah(sub.amount)}
+                      </p>
+                    </div>
+                  ))
+                )}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

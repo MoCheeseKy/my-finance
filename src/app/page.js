@@ -4,51 +4,56 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { db, initDummyData } from '@/lib/storage';
 import {
-  ArrowDownCircle,
-  ArrowUpCircle,
-  Plus,
+  ArrowDownRight,
+  ArrowUpRight,
   Target,
-  Zap,
-  Home,
-  PieChart,
-  MessageSquare,
-  CreditCard,
-  RefreshCw,
   Wallet,
   ReceiptText,
   PiggyBank,
   ChevronRight,
+  TrendingUp,
+  Sparkles,
 } from 'lucide-react';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
+import { motion, AnimatePresence } from 'framer-motion';
+
+// --- ANIMATION VARIANTS ---
+const containerVariants = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
+  },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 20 },
+  show: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 300, damping: 24 },
+  },
+};
 
 export default function Dashboard() {
   const router = useRouter();
-
-  // State management yang Gen-Z friendly (pake loading state biar ga kaget)
   const [isLoading, setIsLoading] = useState(true);
   const [data, setData] = useState({
     balance: 0,
     income: 0,
     expense: 0,
     savings: { name: '', target: 1, current: 0 },
-    upcomingBill: { name: '', amount: 0, daysLeft: 0 },
   });
   const [recentTransactions, setRecentTransactions] = useState([]);
 
-  // Fetching data dari local storage pas app pertama kali load
+  // Mock fetching logic (keep your existing robust logic here)
   useEffect(() => {
     const loadData = async () => {
       try {
-        await initDummyData(); // Masukin data awal kalo kosong
-
-        // Tarik semua data dari IndexedDB
+        await initDummyData();
         const balance = await db.getItem('balance');
-        const income = await db.getItem('income');
-        const savings = await db.getItem('savings');
-        const upcomingBill = await db.getItem('upcoming_bill');
         const transactionsList = (await db.getItem('transactions')) || [];
 
-        // Kalkulasi Income & Expense khusus BULAN INI
         const now = new Date();
         const monthStart = startOfMonth(now);
         const monthEnd = endOfMonth(now);
@@ -64,14 +69,7 @@ export default function Dashboard() {
           }
         });
 
-        setData({
-          balance,
-          income: monthlyIncome,
-          expense: monthlyExpense,
-          savings,
-          upcomingBill,
-        });
-        // Ambil 5 transaksi paling baru
+        setData({ balance, income: monthlyIncome, expense: monthlyExpense });
         setRecentTransactions(
           transactionsList
             .sort((a, b) => new Date(b.date) - new Date(a.date))
@@ -80,7 +78,8 @@ export default function Dashboard() {
       } catch (error) {
         console.error('Waduh, gagal nge-load data nih bestie:', error);
       } finally {
-        setIsLoading(false);
+        // Simulasi delay sedikit agar animasi mulus terlihat
+        setTimeout(() => setIsLoading(false), 800);
       }
     };
     loadData();
@@ -94,185 +93,238 @@ export default function Dashboard() {
     }).format(number || 0);
   };
 
-  // Ngitung persentase tabungan pake math logic simple
-  const savingProgress =
-    Math.round((data.savings.current / data.savings.target) * 100) || 0;
-
-  // Logic simple buat nentuin zona dompet
-  const isBoncos = data.expense > data.income * 0.7;
-  const financialZone = isBoncos
-    ? { status: 'Red Flag 🚩', color: 'bg-red-100 text-red-700' }
-    : { status: 'Slay & Safe ✨', color: 'bg-pastel-green text-green-800' };
-
-  if (isLoading)
+  // Modern Loading State
+  if (isLoading) {
     return (
-      <div className='min-h-screen flex items-center justify-center text-text-secondary font-bold'>
-        Loading bentar ya bestie... 💅
+      <div className='min-h-screen bg-bg flex flex-col items-center justify-center gap-4'>
+        <motion.div
+          animate={{ rotate: 360, scale: [1, 1.2, 1] }}
+          transition={{ repeat: Infinity, duration: 2, ease: 'easeInOut' }}
+          className='w-16 h-16 bg-primary/20 rounded-2xl border-2 border-primary flex items-center justify-center'
+        >
+          <Sparkles className='text-primary w-8 h-8' />
+        </motion.div>
+        <p className='text-text-secondary font-medium tracking-wide animate-pulse'>
+          Menyiapkan dompetmu... ✨
+        </p>
       </div>
     );
+  }
 
   return (
-    <main className='min-h-screen bg-bg pb-28'>
-      <div className='absolute top-0 left-0 w-full h-64 bg-gradient-to-b from-expense/40 to-transparent z-0'></div>
+    <main className='min-h-screen bg-bg pb-28 font-sans selection:bg-primary/30'>
+      {/* Soft Background Blob */}
+      <div className='absolute top-[-10%] left-[-10%] w-72 h-72 bg-primary/20 rounded-full mix-blend-multiply filter blur-[80px] opacity-70 z-0 dark:opacity-40'></div>
 
       <div className='relative z-10 p-6 max-w-md mx-auto'>
-        <header className='flex justify-between items-center mb-6 pt-2 px-1 relative z-10'>
-          <div className='flex items-center gap-3'>
-            <div className='w-12 h-12 bg-surface rounded-full flex items-center justify-center text-xl shadow-sm border-2 border-expense/50'>
-              👩‍💻
+        <motion.div
+          variants={containerVariants}
+          initial='hidden'
+          animate='show'
+        >
+          {/* HEADER */}
+          <motion.header
+            variants={itemVariants}
+            className='flex justify-between items-center mb-8 pt-2'
+          >
+            <div className='flex items-center gap-4'>
+              <div className='relative w-14 h-14 bg-surface rounded-[1.2rem] shadow-sm border border-border flex items-center justify-center text-2xl overflow-hidden group'>
+                <div className='absolute inset-0 bg-primary/10 group-hover:bg-primary/20 transition-colors'></div>
+                👩‍💻
+              </div>
+              <div>
+                <h1 className='text-xs text-text-secondary font-semibold uppercase tracking-wider mb-1'>
+                  Welcome Back
+                </h1>
+                <h2 className='text-2xl font-black tracking-tight text-text-primary leading-none'>
+                  Bossque! <span className='text-primary'>✨</span>
+                </h2>
+              </div>
             </div>
-            <div>
-              <h1 className='text-sm text-text-secondary font-medium mb-0.5'>
-                Selamat Datang
-              </h1>
-              <h2 className='text-2xl font-black tracking-tight text-text-primary'>
-                Bossque!
+          </motion.header>
+
+          {/* NET WORTH HERO CARD */}
+          <motion.section
+            variants={itemVariants}
+            className='mb-6 group cursor-pointer'
+            onClick={() => router.push('/balance-accounts')}
+          >
+            <div className='relative overflow-hidden bg-gradient-to-br from-primary to-primary-hover p-7 rounded-[2.5rem] shadow-[0_15px_35px_rgb(220,198,255,0.4)] dark:shadow-[0_15px_35px_rgb(155,126,222,0.2)] transition-transform duration-300 group-hover:scale-[1.02]'>
+              {/* Glass Details */}
+              <div className='absolute -right-8 -top-8 w-40 h-40 bg-white/20 rounded-full blur-2xl'></div>
+              <div className='absolute right-6 top-6 w-12 h-12 bg-white/30 backdrop-blur-md rounded-2xl flex items-center justify-center shadow-inner'>
+                <Wallet className='w-6 h-6 text-stone-900' />
+              </div>
+
+              <p className='text-stone-800/80 font-semibold text-sm mb-2 relative z-10'>
+                Total Saldo
+              </p>
+              <h2 className='text-4xl font-black text-stone-900 drop-shadow-sm truncate w-full relative z-10 mb-1'>
+                {formatRupiah(data.balance)}
               </h2>
             </div>
-          </div>
-        </header>
+          </motion.section>
 
-        {/* Main Card - Net Worth (Header dipisahkan) */}
-        <section className='bg-surface/80 backdrop-blur-md rounded-[2.5rem] p-1.5 shadow-sm border-2 border-expense/50 mb-4'>
-          <div className='bg-gradient-to-br from-expense via-surface to-investment p-6 rounded-[2rem] shadow-inner flex flex-col items-center justify-center text-center'>
-            <h2 className='text-4xl font-black text-text-primary mb-6 drop-shadow-sm truncate w-full'>
-              {formatRupiah(data.balance)}
-            </h2>
-
-            <button
-              onClick={() => router.push('/balance-accounts')}
-              className='w-full bg-surface/80 hover:bg-surface text-text-primary py-3 rounded-2xl flex items-center justify-center gap-2 font-bold text-sm shadow-sm border border-surface/50 transition-all hover:-translate-y-0.5'
-            >
-              <Wallet className='w-4 h-4 text-primary' />
-              Lihat Detail Dompet
-            </button>
-          </div>
-        </section>
-
-        {/* Separated Monthly Income & Expense Cards */}
-        <section className='grid grid-cols-2 gap-3 mb-6'>
-          <div className='bg-surface/70 backdrop-blur-md px-4 py-4 rounded-[1.5rem] flex flex-col items-start gap-2 border-2 border-income/30 shadow-sm'>
-            <div className='flex items-center gap-2 mb-1 w-full'>
-              <ArrowDownCircle className='text-income w-6 h-6 fill-income/20 opacity-90 flex-shrink-0' />
-              <span className='text-[10px] text-text-secondary font-bold uppercase tracking-wider truncate'>
-                Income
-              </span>
-            </div>
-            <p className='text-lg font-black text-text-primary truncate w-full'>
-              {formatRupiah(data.income)}
-            </p>
-          </div>
-          <div className='bg-surface/70 backdrop-blur-md px-4 py-4 rounded-[1.5rem] flex flex-col items-start gap-2 border-2 border-expense/30 shadow-sm'>
-            <div className='flex items-center gap-2 mb-1 w-full'>
-              <ArrowUpCircle className='text-expense w-6 h-6 fill-expense/20 opacity-90 drop-shadow-sm flex-shrink-0' />
-              <span className='text-[10px] text-text-secondary font-bold uppercase tracking-wider truncate'>
-                Expense
-              </span>
-            </div>
-            <p className='text-lg font-black text-text-primary truncate w-full'>
-              {formatRupiah(data.expense)}
-            </p>
-          </div>
-        </section>
-
-        {/* Quick Features Row -> 2x2 Grid */}
-        <section className='mb-6'>
-          <h3 className='text-sm font-black text-text-primary mb-3 px-1'>
-            Fitur Pendukung
-          </h3>
-          <div className='grid grid-cols-2 gap-3 pb-2'>
-            {/* Nabung */}
-            <div className='bg-surface/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-investment/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-investment transition-all cursor-pointer group'>
-              <div className='w-12 h-12 mb-2 bg-investment/30 rounded-full flex items-center justify-center'>
-                <PiggyBank className='w-6 h-6 text-investment' />
+          {/* INCOME & EXPENSE (Bento Box) */}
+          <motion.section
+            variants={itemVariants}
+            className='grid grid-cols-2 gap-4 mb-8'
+          >
+            <div className='bg-surface/80 backdrop-blur-xl p-5 rounded-[2rem] border border-border shadow-sm flex flex-col gap-3'>
+              <div className='w-10 h-10 rounded-2xl bg-income/10 flex items-center justify-center'>
+                <ArrowDownRight className='text-income w-5 h-5 stroke-[3]' />
               </div>
-              <span className='text-xs font-bold text-text-primary group-hover:text-investment transition-colors'>
-                Nabung
-              </span>
-            </div>
-
-            {/* Split Bill */}
-            <div className='bg-surface/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-warning/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-warning transition-all cursor-pointer group'>
-              <div className='w-12 h-12 mb-2 bg-warning/40 rounded-full flex items-center justify-center'>
-                <ReceiptText className='w-6 h-6 text-warning' />
-              </div>
-              <span className='text-xs font-bold text-text-primary group-hover:text-warning transition-colors'>
-                Split Bill
-              </span>
-            </div>
-
-            {/* Investment */}
-            <div className='bg-surface/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-warning/40 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-warning transition-all cursor-pointer group'>
-              <div className='w-12 h-12 mb-2 bg-warning/40 rounded-full flex items-center justify-center'>
-                <ReceiptText className='w-6 h-6 text-warning' />
-              </div>
-              <span className='text-xs font-bold text-text-primary group-hover:text-warning transition-colors'>
-                Investasi
-              </span>
-            </div>
-
-            {/* Budgeting */}
-            <div className='bg-surface/90 backdrop-blur-sm rounded-[1.5rem] shadow-sm border-2 border-income/60 flex flex-col items-center justify-center p-4 hover:-translate-y-1 hover:border-income transition-all cursor-pointer group'>
-              <div className='w-12 h-12 mb-2 bg-income/40 rounded-full flex items-center justify-center'>
-                <Target className='w-6 h-6 text-income' />
-              </div>
-              <span className='text-xs font-bold text-text-primary group-hover:text-income transition-colors'>
-                Budgeting
-              </span>
-            </div>
-          </div>
-        </section>
-
-        {/* Recent Transactions List */}
-        <section className='mb-6'>
-          <div className='flex justify-between items-center mb-3 px-1'>
-            <h3 className='text-sm font-black text-text-primary'>
-              Transaksi Terakhir
-            </h3>
-            <button
-              onClick={() => router.push('/insight')}
-              className='text-xs font-bold text-expense hover:text-expense flex items-center'
-            >
-              Lihat Semua <ChevronRight className='w-3 h-3 ml-0.5' />
-            </button>
-          </div>
-
-          <div className='space-y-3'>
-            {recentTransactions.length === 0 ? (
-              <div className='text-center py-8 bg-surface/60 backdrop-blur-sm rounded-[2rem] border-2 border-surface/50 border-dashed'>
-                <p className='text-text-secondary font-bold text-sm'>
-                  Belum ada transaksi bestie
+              <div>
+                <span className='text-xs text-text-secondary font-bold'>
+                  Pemasukan
+                </span>
+                <p className='text-lg font-black text-text-primary truncate mt-0.5'>
+                  {formatRupiah(data.income)}
                 </p>
               </div>
-            ) : (
-              recentTransactions.map((txn) => (
-                <div
-                  key={txn.id}
-                  className='bg-surface/90 backdrop-blur-sm p-3 rounded-[1.5rem] border-2 border-expense/30 shadow-sm flex justify-between items-center hover:border-expense hover:-translate-y-0.5 transition-all'
+            </div>
+
+            <div className='bg-surface/80 backdrop-blur-xl p-5 rounded-[2rem] border border-border shadow-sm flex flex-col gap-3'>
+              <div className='w-10 h-10 rounded-2xl bg-expense/10 flex items-center justify-center'>
+                <ArrowUpRight className='text-expense w-5 h-5 stroke-[3]' />
+              </div>
+              <div>
+                <span className='text-xs text-text-secondary font-bold'>
+                  Pengeluaran
+                </span>
+                <p className='text-lg font-black text-text-primary truncate mt-0.5'>
+                  {formatRupiah(data.expense)}
+                </p>
+              </div>
+            </div>
+          </motion.section>
+
+          {/* QUICK FEATURES (Pills instead of massive boxes) */}
+          <motion.section variants={itemVariants} className='mb-8'>
+            <div className='flex justify-between items-end mb-4'>
+              <h3 className='text-lg font-black text-text-primary'>
+                Eksplorasi
+              </h3>
+            </div>
+            <div className='grid grid-cols-4 gap-3'>
+              {[
+                {
+                  label: 'Nabung',
+                  icon: PiggyBank,
+                  color: 'text-primary',
+                  bg: 'bg-primary/10',
+                  path: '/savings',
+                },
+                {
+                  label: 'Split',
+                  icon: ReceiptText,
+                  color: 'text-orange-500',
+                  bg: 'bg-orange-500/10',
+                  path: '/split-bill',
+                },
+                {
+                  label: 'Invest',
+                  icon: TrendingUp,
+                  color: 'text-investment',
+                  bg: 'bg-investment/10',
+                  path: '/investment',
+                },
+                {
+                  label: 'Budget',
+                  icon: Target,
+                  color: 'text-income',
+                  bg: 'bg-income/10',
+                  path: '/budget',
+                },
+              ].map((feature, idx) => (
+                <motion.button
+                  key={idx}
+                  whileHover={{ y: -4 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => router.push(feature.path)}
+                  className='flex flex-col items-center gap-2 group'
                 >
-                  <div className='flex-1 min-w-0 mr-3'>
-                    <p className='font-bold text-text-primary text-sm mb-0.5 truncate'>
-                      {txn.title}
-                    </p>
-                    <div className='flex gap-2 text-[10px] font-bold text-text-secondary'>
-                      <span className='capitalize'>{txn.category}</span>
-                    </div>
-                  </div>
-                  <p
-                    className={`font-black text-sm whitespace-nowrap ${txn.type === 'expense' ? 'text-expense' : txn.type === 'income' ? 'text-income' : 'text-text-primary'}`}
+                  <div
+                    className={`w-14 h-14 ${feature.bg} rounded-[1.2rem] flex items-center justify-center border border-transparent group-hover:border-border transition-all`}
                   >
-                    {txn.type === 'expense'
-                      ? '-'
-                      : txn.type === 'income'
-                        ? '+'
-                        : ''}
-                    {formatRupiah(txn.amount)}
-                  </p>
-                </div>
-              ))
-            )}
-          </div>
-        </section>
+                    <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                  </div>
+                  <span className='text-[11px] font-semibold text-text-secondary group-hover:text-text-primary transition-colors'>
+                    {feature.label}
+                  </span>
+                </motion.button>
+              ))}
+            </div>
+          </motion.section>
+
+          {/* RECENT TRANSACTIONS */}
+          <motion.section variants={itemVariants}>
+            <div className='flex justify-between items-center mb-4'>
+              <h3 className='text-lg font-black text-text-primary'>
+                Riwayat Transaksi
+              </h3>
+              <button
+                onClick={() => router.push('/insight')}
+                className='text-xs font-bold text-primary hover:text-primary-hover flex items-center bg-primary/10 px-3 py-1.5 rounded-full transition-colors'
+              >
+                Semua <ChevronRight className='w-3 h-3 ml-1 stroke-[3]' />
+              </button>
+            </div>
+
+            <div className='space-y-3'>
+              <AnimatePresence>
+                {recentTransactions.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className='text-center py-12 bg-surface/50 backdrop-blur-sm rounded-[2rem] border-2 border-border border-dashed'
+                  >
+                    <p className='text-text-secondary font-bold text-sm'>
+                      Masih sepi nih dompetnya 👻
+                    </p>
+                  </motion.div>
+                ) : (
+                  recentTransactions.map((txn, index) => (
+                    <motion.div
+                      key={txn.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      whileHover={{ scale: 1.01 }}
+                      className='bg-surface/60 backdrop-blur-xl p-4 rounded-[1.5rem] border border-border shadow-sm flex items-center gap-4 cursor-pointer'
+                    >
+                      <div
+                        className={`w-12 h-12 rounded-2xl flex items-center justify-center flex-shrink-0 ${txn.type === 'expense' ? 'bg-expense/10 text-expense' : 'bg-income/10 text-income'}`}
+                      >
+                        {txn.type === 'expense' ? (
+                          <ArrowUpRight className='w-6 h-6' />
+                        ) : (
+                          <ArrowDownRight className='w-6 h-6' />
+                        )}
+                      </div>
+
+                      <div className='flex-1 min-w-0'>
+                        <p className='font-bold text-text-primary text-[15px] mb-0.5 truncate'>
+                          {txn.title}
+                        </p>
+                        <span className='inline-block text-[10px] font-bold text-text-secondary uppercase tracking-wider bg-bg px-2 py-0.5 rounded-md'>
+                          {txn.category}
+                        </span>
+                      </div>
+
+                      <p
+                        className={`font-black text-[15px] whitespace-nowrap ${txn.type === 'expense' ? 'text-expense' : 'text-income'}`}
+                      >
+                        {txn.type === 'expense' ? '-' : '+'}
+                        {formatRupiah(txn.amount)}
+                      </p>
+                    </motion.div>
+                  ))
+                )}
+              </AnimatePresence>
+            </div>
+          </motion.section>
+        </motion.div>
       </div>
     </main>
   );
