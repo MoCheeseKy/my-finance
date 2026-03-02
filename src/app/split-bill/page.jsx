@@ -57,7 +57,7 @@ export default function FixedSplitBill() {
   const fileInputRef = useRef(null);
 
   // -- CORE DATA --
-  const [members, setMembers] = useState(['Aku', 'Bestie 1']);
+  const [members, setMembers] = useState(['Aku']); // Default cuma 'Aku'
   const [items, setItems] = useState([]);
 
   // -- GLOBAL TAX & SERVICE --
@@ -149,6 +149,19 @@ export default function FixedSplitBill() {
     setIsAddMemberModalOpen(false);
   };
 
+  const handleRemoveMember = (nameToRemove) => {
+    if (nameToRemove === 'Aku') return; // Cegah hapus diri sendiri
+    // Hapus dari list squad
+    setMembers(members.filter((m) => m !== nameToRemove));
+    // Hapus juga assignment dari item-item yang udah ada biar gak error kalkulasi
+    setItems(
+      items.map((item) => ({
+        ...item,
+        assignedTo: item.assignedTo.filter((m) => m !== nameToRemove),
+      })),
+    );
+  };
+
   const toggleAssignment = (itemId, memberName) => {
     setItems(
       items.map((item) => {
@@ -172,7 +185,7 @@ export default function FixedSplitBill() {
       )
       .join('\n');
     navigator.clipboard.writeText(
-      `📌 *Tagihan Nongkrong*\n\n${text}\n\nTotal: Rp ${Math.round(calculation.grandTotal).toLocaleString('id-ID')}\n\nBayar ya ygy! `,
+      `📌 *Tagihan Nongkrong*\n\n${text}\n\nTotal: Rp ${Math.round(calculation.grandTotal).toLocaleString('id-ID')}\n\nBayar ya ygy! ✨`,
     );
 
     // Tampilkan feedback sementara di tombol
@@ -330,14 +343,27 @@ export default function FixedSplitBill() {
               <Users className='w-5 h-5 text-primary' />
             </div>
             <div className='flex gap-2'>
-              {members.map((m) => (
-                <div
-                  key={m}
-                  className='px-3 py-1.5 bg-bg border border-border rounded-xl text-[11px] font-bold text-text-primary whitespace-nowrap'
-                >
-                  {m}
-                </div>
-              ))}
+              <AnimatePresence>
+                {members.map((m) => (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.8, width: 0 }}
+                    key={m}
+                    className='pl-3 pr-2 py-1.5 bg-bg border border-border rounded-xl text-[11px] font-bold text-text-primary whitespace-nowrap flex items-center gap-1.5'
+                  >
+                    <span>{m}</span>
+                    {m !== 'Aku' && (
+                      <button
+                        onClick={() => handleRemoveMember(m)}
+                        className='w-4 h-4 bg-surface hover:bg-expense/10 text-text-secondary hover:text-expense rounded-full flex items-center justify-center transition-colors'
+                      >
+                        <X className='w-2.5 h-2.5' />
+                      </button>
+                    )}
+                  </motion.div>
+                ))}
+              </AnimatePresence>
             </div>
           </div>
           <button
@@ -548,7 +574,7 @@ export default function FixedSplitBill() {
                 Membaca Bon...
               </p>
               <p className='text-text-secondary text-xs font-bold uppercase tracking-widest'>
-                Tunggu Sebentar Yaaa!
+                AI sedang bekerja ✨
               </p>
             </div>
           </motion.div>

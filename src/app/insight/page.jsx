@@ -19,6 +19,7 @@ import {
   Filter,
   ArrowUpRight,
   ArrowDownRight,
+  Check,
 } from 'lucide-react';
 import {
   format,
@@ -87,6 +88,8 @@ export default function Insights() {
 
   const [isGraphDrawerOpen, setIsGraphDrawerOpen] = useState(false);
   const [isSubsDrawerOpen, setIsSubsDrawerOpen] = useState(false);
+  // NEW: State for Category Filter Drawer
+  const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
   useEffect(() => {
     const loadData = async () => {
@@ -308,6 +311,16 @@ export default function Insights() {
     link.click();
     document.body.removeChild(link);
   };
+
+  // List opsi filter kategori (Sama dengan yang di select sebelumnya)
+  const filterOptions = [
+    { value: 'all', label: 'Semua' },
+    { value: 'gaji', label: 'Gaji' },
+    { value: 'bonus', label: 'Bonus' },
+    { value: 'pokok', label: 'Pokok' },
+    { value: 'keinginan', label: 'Keinginan' },
+    { value: 'tetap', label: 'Tetap' },
+  ];
 
   return (
     <main className='min-h-screen bg-bg relative overflow-x-hidden font-sans pb-28'>
@@ -555,6 +568,7 @@ export default function Insights() {
 
           {/* Filters */}
           <div className='flex gap-2 mb-4'>
+            {/* Search Input */}
             <div className='flex-1 bg-surface/80 backdrop-blur-sm flex items-center px-4 py-3 rounded-[1.2rem] border border-border focus-within:border-primary transition-colors shadow-sm'>
               <Search className='w-4 h-4 text-text-secondary mr-2' />
               <input
@@ -566,21 +580,17 @@ export default function Insights() {
               />
             </div>
 
-            <div className='relative bg-surface/80 backdrop-blur-sm border border-border rounded-[1.2rem] flex items-center px-3 shadow-sm hover:border-primary/50 transition-colors'>
-              <Filter className='w-4 h-4 text-text-secondary absolute left-3 pointer-events-none' />
-              <select
-                value={selectedCategory}
-                onChange={(e) => setSelectedCategory(e.target.value)}
-                className='w-24 bg-transparent outline-none text-xs font-bold text-text-primary pl-6 py-3 appearance-none cursor-pointer'
-              >
-                <option value='all'>Semua</option>
-                <option value='gaji'>Gaji</option>
-                <option value='bonus'>Bonus</option>
-                <option value='pokok'>Pokok</option>
-                <option value='keinginan'>Keinginan</option>
-                <option value='tetap'>Tetap</option>
-              </select>
-            </div>
+            {/* Custom Filter Button (replaces HTML select) */}
+            <button
+              onClick={() => setIsFilterDrawerOpen(true)}
+              className='relative bg-surface/80 backdrop-blur-sm border border-border rounded-[1.2rem] flex items-center px-4 py-3 shadow-sm hover:border-primary/50 transition-colors gap-2 min-w-[100px]'
+            >
+              <Filter className='w-4 h-4 text-text-secondary' />
+              <span className='text-xs font-bold text-text-primary capitalize truncate'>
+                {filterOptions.find((opt) => opt.value === selectedCategory)
+                  ?.label || 'Semua'}
+              </span>
+            </button>
 
             <div className='relative bg-surface/80 backdrop-blur-sm border border-border rounded-[1.2rem] flex items-center justify-center px-3 w-12 hover:border-primary/50 transition-colors shadow-sm group'>
               <input
@@ -644,6 +654,59 @@ export default function Insights() {
           </div>
         </motion.section>
       </motion.div>
+
+      {/* --- BOTTOM SHEET: CATEGORY FILTER --- */}
+      <AnimatePresence>
+        {isFilterDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsFilterDrawerOpen(false)}
+              className='fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto flex flex-col'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6 flex-shrink-0'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <Filter className='w-6 h-6 text-primary' /> Filter Kategori
+                </h3>
+                <button
+                  onClick={() => setIsFilterDrawerOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+
+              <div className='space-y-2 overflow-y-auto max-h-[60vh] scrollbar-hide pb-4'>
+                {filterOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => {
+                      setSelectedCategory(opt.value);
+                      setIsFilterDrawerOpen(false);
+                    }}
+                    className={`w-full flex justify-between items-center p-4 rounded-[1.2rem] transition-colors border ${selectedCategory === opt.value ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-bg text-text-primary border-transparent hover:border-border'}`}
+                  >
+                    <span className='font-bold'>{opt.label}</span>
+                    {selectedCategory === opt.value && (
+                      <Check className='w-5 h-5 text-primary' />
+                    )}
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       {/* --- BOTTOM SHEET: GRAFIK KATEGORI --- */}
       <AnimatePresence>

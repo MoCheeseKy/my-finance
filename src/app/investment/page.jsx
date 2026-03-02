@@ -20,6 +20,7 @@ import {
   PieChart,
   Info,
   CreditCard,
+  ChevronDown,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -64,9 +65,13 @@ export default function InvestmentPage() {
   const [investments, setInvestments] = useState([]);
   const [accounts, setAccounts] = useState([]);
 
-  // State Modal/Drawer
+  // State Modal/Drawer Utama
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+
+  // State Sub-Modals (Custom Dropdowns)
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
+  const [isTypeModalOpen, setIsTypeModalOpen] = useState(false);
 
   // State Form
   const [isNewInvestment, setIsNewInvestment] = useState(false); // false = Sudah Berjalan, true = Beli Baru
@@ -231,10 +236,10 @@ export default function InvestmentPage() {
       updatedInvestments = investments.map((item) =>
         item.id === editingId ? newItem : item,
       );
-      showMessage('success', 'Aset berhasil diperbarui!');
+      showMessage('success', 'Aset berhasil diperbarui! 📈');
     } else {
       updatedInvestments = [newItem, ...investments];
-      showMessage('success', 'Aset baru berhasil ditambahkan!');
+      showMessage('success', 'Aset baru berhasil ditambahkan! 🚀');
     }
 
     setInvestments(updatedInvestments);
@@ -252,7 +257,7 @@ export default function InvestmentPage() {
     setInvestments(updatedInvestments);
     await db.setItem('investments', updatedInvestments);
     setIsDrawerOpen(false);
-    showMessage('success', 'Aset berhasil dihapus.');
+    showMessage('success', 'Aset berhasil dihapus 🗑️');
   };
 
   return (
@@ -536,7 +541,7 @@ export default function InvestmentPage() {
                   </div>
                 )}
 
-                {/* Pilih Dompet (Hanya muncul jika "Beli Baru") */}
+                {/* Pilih Dompet (Hanya muncul jika "Beli Baru") - DIUBAH MENJADI MODAL */}
                 <AnimatePresence>
                   {!editingId && isNewInvestment && (
                     <motion.div
@@ -545,22 +550,31 @@ export default function InvestmentPage() {
                       exit={{ opacity: 0, height: 0 }}
                       className='overflow-hidden'
                     >
-                      <div className='bg-primary/5 rounded-[1.5rem] p-4 border border-primary/20 mb-2 mt-1'>
-                        <label className='text-[10px] font-black text-primary uppercase tracking-widest block mb-2 flex items-center gap-1'>
-                          <CreditCard className='w-3 h-3' /> Potong Saldo Dari
-                        </label>
-                        <select
-                          value={selectedAccountId}
-                          onChange={(e) => setSelectedAccountId(e.target.value)}
-                          className='w-full bg-transparent outline-none text-sm font-bold text-text-primary appearance-none cursor-pointer'
-                        >
-                          {accounts.map((acc) => (
-                            <option key={acc.id} value={acc.id}>
-                              {acc.name} (Rp{' '}
-                              {acc.balance.toLocaleString('id-ID')})
-                            </option>
-                          ))}
-                        </select>
+                      <div
+                        onClick={() => setIsAccountModalOpen(true)}
+                        className='bg-primary/5 rounded-[1.5rem] p-4 border border-primary/20 mb-2 mt-1 cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
+                      >
+                        <div>
+                          <label className='text-[10px] font-black text-primary uppercase tracking-widest block mb-1 group-hover:text-primary/80 transition-colors flex items-center gap-1'>
+                            <CreditCard className='w-3 h-3' /> Potong Saldo Dari
+                          </label>
+                          <div className='font-bold text-text-primary text-sm'>
+                            {accounts.find((a) => a.id === selectedAccountId)
+                              ?.name || 'Pilih Sumber'}
+                            {selectedAccountId && (
+                              <span className='text-xs font-medium text-text-secondary ml-2 whitespace-nowrap hidden sm:inline-block'>
+                                (Rp{' '}
+                                {accounts
+                                  .find((a) => a.id === selectedAccountId)
+                                  ?.balance.toLocaleString('id-ID')}
+                                )
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                          <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                        </div>
                       </div>
                     </motion.div>
                   )}
@@ -582,28 +596,31 @@ export default function InvestmentPage() {
                   />
                 </div>
 
-                {/* Tipe Aset */}
-                <div className='bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors'>
-                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
-                    Jenis Instrumen
-                  </label>
-                  <select
-                    value={formData.type}
-                    onChange={(e) =>
-                      setFormData({ ...formData, type: e.target.value })
-                    }
-                    className='w-full bg-transparent outline-none font-bold text-text-primary text-sm appearance-none cursor-pointer'
-                  >
-                    {Object.entries(assetTypes).map(([key, config]) => (
-                      <option
-                        key={key}
-                        value={key}
-                        className='text-text-primary bg-surface'
-                      >
-                        {config.label}
-                      </option>
-                    ))}
-                  </select>
+                {/* Tipe Aset - DIUBAH MENJADI MODAL */}
+                <div
+                  onClick={() => setIsTypeModalOpen(true)}
+                  className='bg-bg/50 rounded-[1.5rem] p-4 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
+                >
+                  <div>
+                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                      Jenis Instrumen
+                    </label>
+                    <div className='font-bold text-text-primary text-sm flex items-center gap-2'>
+                      {(() => {
+                        const Icon =
+                          assetTypes[formData.type]?.icon || LineChart;
+                        return (
+                          <Icon
+                            className={`w-4 h-4 ${assetTypes[formData.type]?.color}`}
+                          />
+                        );
+                      })()}
+                      {assetTypes[formData.type]?.label || 'Pilih Jenis'}
+                    </div>
+                  </div>
+                  <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                    <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                  </div>
                 </div>
 
                 {/* Nominal Group */}
@@ -658,6 +675,117 @@ export default function InvestmentPage() {
                 >
                   {editingId ? 'Simpan Perubahan' : 'Tambahkan ke Portofolio'}
                 </motion.button>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* --- MODAL PILIH DOMPET --- */}
+      <AnimatePresence>
+        {isAccountModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsAccountModalOpen(false)}
+              className='fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[90] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <Wallet className='w-6 h-6 text-primary' /> Pilih Dompet
+                </h3>
+                <button
+                  onClick={() => setIsAccountModalOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+              <div className='space-y-3 max-h-[50vh] overflow-y-auto scrollbar-hide pb-4'>
+                {accounts.map((acc) => (
+                  <button
+                    key={acc.id}
+                    onClick={() => {
+                      setSelectedAccountId(acc.id);
+                      setIsAccountModalOpen(false);
+                    }}
+                    className={`w-full flex justify-between items-center p-4 rounded-[1.2rem] transition-colors border ${selectedAccountId === acc.id ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-bg text-text-primary border-transparent hover:border-border'}`}
+                  >
+                    <span className='font-bold'>{acc.name}</span>
+                    <span className='text-sm font-bold opacity-80'>
+                      Rp {acc.balance.toLocaleString('id-ID')}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* --- MODAL PILIH JENIS INSTRUMEN --- */}
+      <AnimatePresence>
+        {isTypeModalOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsTypeModalOpen(false)}
+              className='fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[90] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <PieChart className='w-6 h-6 text-primary' /> Jenis Instrumen
+                </h3>
+                <button
+                  onClick={() => setIsTypeModalOpen(false)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+              <div className='space-y-3 max-h-[50vh] overflow-y-auto scrollbar-hide pb-4'>
+                {Object.entries(assetTypes).map(([key, config]) => {
+                  const Icon = config.icon;
+                  return (
+                    <button
+                      key={key}
+                      onClick={() => {
+                        setFormData({ ...formData, type: key });
+                        setIsTypeModalOpen(false);
+                      }}
+                      className={`w-full flex items-center gap-4 p-4 rounded-[1.2rem] transition-colors border ${formData.type === key ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-bg text-text-primary border-transparent hover:border-border'}`}
+                    >
+                      <div
+                        className={`w-10 h-10 rounded-[1rem] flex items-center justify-center ${config.bg}`}
+                      >
+                        <Icon className={`w-5 h-5 ${config.color}`} />
+                      </div>
+                      <span className='font-bold text-base'>
+                        {config.label}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </motion.div>
           </>

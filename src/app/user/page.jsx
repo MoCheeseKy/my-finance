@@ -72,8 +72,8 @@ export default function UserPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [theme, setTheme] = useState('light');
   const [profile, setProfile] = useState({
-    name: 'Anak RPL',
-    bio: 'Lagi nabung buat trip DINACOM ke Semarang 🚀',
+    name: 'CEO Muda',
+    bio: 'Bismillah konsisten!',
   });
 
   // State Feedback & Modals

@@ -16,6 +16,8 @@ import {
   MinusCircle,
   PlusCircle,
   PiggyBank,
+  ChevronDown,
+  AlertTriangle,
 } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { id as localeId } from 'date-fns/locale';
@@ -36,6 +38,15 @@ const pageVariants = {
   },
 };
 
+const itemVariants = {
+  hidden: { opacity: 0, y: 15 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { type: 'spring', stiffness: 300, damping: 24 },
+  },
+};
+
 const bottomSheetVariants = {
   hidden: { y: '100%', opacity: 0 },
   visible: {
@@ -51,25 +62,26 @@ export default function SavingsPage() {
   const [savings, setSavings] = useState([]);
   const [accounts, setAccounts] = useState([]);
 
-  // Modals State
+  // Modals State Utama
   const [showAddModal, setShowAddModal] = useState(false);
-
-  // State for Manage (Topup / Withdraw)
   const [manageData, setManageData] = useState(null); // { plan, type: 'add' | 'withdraw' }
+  const [confirmActionData, setConfirmActionData] = useState(null); // { plan, action: 'delete' | 'complete' }
+
+  // State Pengendali Modal Pilih Dompet (Biar reusable)
+  const [accountPickerTarget, setAccountPickerTarget] = useState(null); // 'initial', 'manage', 'confirm'
+
+  // Input States
   const [manageAmount, setManageAmount] = useState('');
   const [selectedAccountId, setSelectedAccountId] = useState('');
+  const [initialSourceAcc, setInitialSourceAcc] = useState('');
 
-  // Form State
   const [formData, setFormData] = useState({
     title: '',
     targetAmount: '',
-    currentAmount: '', // Dikosongkan defaultnya agar placeholder muncul
+    currentAmount: '',
     deadline: '',
     startDate: format(new Date(), 'yyyy-MM-dd'),
   });
-
-  // State Sumber Dana khusus untuk "Modal Awal"
-  const [initialSourceAcc, setInitialSourceAcc] = useState('');
 
   useEffect(() => {
     const loadData = async () => {
@@ -111,19 +123,16 @@ export default function SavingsPage() {
         return alert('Waduh, saldo dompet nggak cukup buat modal awal ini! 🥲');
       }
 
-      // 1. Potong Saldo
       currentAccs[accIndex].balance -= initial;
       setAccounts(currentAccs);
       await db.setItem('accounts', currentAccs);
 
-      // 2. Update Global Balance & Expense
       const currentGlobalBalance = (await db.getItem('balance')) || 0;
       await db.setItem('balance', currentGlobalBalance - initial);
 
       const exp = (await db.getItem('expense')) || 0;
       await db.setItem('expense', exp + initial);
 
-      // 3. Catat di Riwayat Transaksi
       const newTxn = {
         id: Date.now(),
         type: 'expense',
@@ -138,14 +147,12 @@ export default function SavingsPage() {
       await db.setItem('transactions', [newTxn, ...history]);
     }
 
-    // Buat Plan Tabungan Baru
     const newPlan = {
       ...formData,
       id: Date.now().toString(),
       targetAmount: target,
       currentAmount: initial,
     };
-
     const updated = [...savings, newPlan];
     setSavings(updated);
     await db.setItem('savings_plans', updated);
@@ -160,18 +167,6 @@ export default function SavingsPage() {
     });
   };
 
-  const deletePlan = async (id) => {
-    if (
-      !confirm(
-        'Yakin mau hapus target tabungan ini? (Uang yang sudah dicatat masuk tidak akan otomatis kembali ke dompet)',
-      )
-    )
-      return;
-    const updated = savings.filter((s) => s.id !== id);
-    setSavings(updated);
-    await db.setItem('savings_plans', updated);
-  };
-
   // --- LOGIC NABUNG & TARIK DANA ---
   const handleManageSubmit = async () => {
     if (!manageAmount || parseFloat(manageAmount) <= 0)
@@ -183,28 +178,21 @@ export default function SavingsPage() {
     const accIndex = accounts.findIndex((a) => a.id === selectedAccountId);
     const currentAccs = [...accounts];
 
-    if (isTopup && currentAccs[accIndex].balance < amount) {
+    if (isTopup && currentAccs[accIndex].balance < amount)
       return alert('Saldo di dompet tidak cukup untuk nabung sebesar ini! 🥲');
-    }
-    if (!isTopup && manageData.plan.currentAmount < amount) {
+    if (!isTopup && manageData.plan.currentAmount < amount)
       return alert('Duit tabungannya nggak cukup buat ditarik segini! 🥲');
-    }
 
-    // 1. Update Tabungan
-    const updatedSavings = savings.map((s) => {
-      if (s.id === manageData.plan.id) {
-        return {
-          ...s,
-          currentAmount: s.currentAmount + (isTopup ? amount : -amount),
-        };
-      }
-      return s;
-    });
-
-    // 2. Update Dompet
+    const updatedSavings = savings.map((s) =>
+      s.id === manageData.plan.id
+        ? {
+            ...s,
+            currentAmount: s.currentAmount + (isTopup ? amount : -amount),
+          }
+        : s,
+    );
     currentAccs[accIndex].balance += isTopup ? -amount : amount;
 
-    // 3. Update Pemasukan/Pengeluaran Global
     const currentGlobalBalance = (await db.getItem('balance')) || 0;
     await db.setItem(
       'balance',
@@ -219,7 +207,6 @@ export default function SavingsPage() {
       await db.setItem('income', inc + amount);
     }
 
-    // 4. Catat Riwayat Transaksi
     const newTxn = {
       id: Date.now(),
       type: isTopup ? 'expense' : 'income',
@@ -245,6 +232,50 @@ export default function SavingsPage() {
     setManageAmount('');
   };
 
+  // --- LOGIC SELESAIKAN & HAPUS TARGET ---
+  const handleExecuteAction = async () => {
+    const { plan, action } = confirmActionData;
+
+    // Jika tabungan ada isinya, cairkan dulu ke dompet utama
+    if (plan.currentAmount > 0) {
+      if (!selectedAccountId)
+        return alert('Pilih dompet tujuan pencairan dulu bossque!');
+
+      const currentAccs = [...accounts];
+      const accIndex = currentAccs.findIndex((a) => a.id === selectedAccountId);
+
+      currentAccs[accIndex].balance += plan.currentAmount;
+      setAccounts(currentAccs);
+      await db.setItem('accounts', currentAccs);
+
+      const currentGlobalBalance = (await db.getItem('balance')) || 0;
+      await db.setItem('balance', currentGlobalBalance + plan.currentAmount);
+
+      const inc = (await db.getItem('income')) || 0;
+      await db.setItem('income', inc + plan.currentAmount);
+
+      const newTxn = {
+        id: Date.now(),
+        type: 'income',
+        title: `Pencairan Tabungan: ${plan.title}`,
+        amount: plan.currentAmount,
+        source: plan.title,
+        accountId: selectedAccountId,
+        category: 'tabungan',
+        date: new Date().toISOString(),
+      };
+      const history = (await db.getItem('transactions')) || [];
+      await db.setItem('transactions', [newTxn, ...history]);
+    }
+
+    // Hapus plan dari daftar
+    const updatedSavings = savings.filter((s) => s.id !== plan.id);
+    setSavings(updatedSavings);
+    await db.setItem('savings_plans', updatedSavings);
+
+    setConfirmActionData(null);
+  };
+
   const formatRupiah = (num) =>
     new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -254,7 +285,6 @@ export default function SavingsPage() {
 
   return (
     <main className='min-h-screen bg-bg relative overflow-x-hidden font-sans pb-28'>
-      {/* Background Soft Glow */}
       <div className='absolute top-[-5%] right-[-10%] w-64 h-64 bg-primary/20 rounded-full mix-blend-multiply filter blur-[80px] z-0 pointer-events-none'></div>
 
       <motion.div
@@ -281,7 +311,7 @@ export default function SavingsPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAddModal(true)}
-            className='w-11 h-11 bg-gradient-to-tr from-primary to-primary-hover rounded-2xl flex items-center justify-center shadow-[0_8px_20px_rgb(220,198,255,0.4)] dark:shadow-[0_8px_20px_rgb(155,126,222,0.3)] text-surface border border-white/20'
+            className='w-11 h-11 bg-gradient-to-tr from-primary to-primary-hover rounded-2xl flex items-center justify-center shadow-[0_8px_20px_rgb(220,198,255,0.4)] text-surface border border-white/20'
           >
             <Plus className='w-6 h-6 stroke-[3]' />
           </motion.button>
@@ -309,7 +339,9 @@ export default function SavingsPage() {
                 <SavingCard
                   key={plan.id}
                   plan={plan}
-                  onDelete={() => deletePlan(plan.id)}
+                  onConfirmAction={(p, action) =>
+                    setConfirmActionData({ plan: p, action })
+                  }
                   onManage={(type) => setManageData({ plan, type })}
                 />
               ))
@@ -402,7 +434,7 @@ export default function SavingsPage() {
                   </div>
                 </div>
 
-                {/* Pilih Dompet hanya muncul kalau Modal Awal diisi > 0 */}
+                {/* Pilih Dompet (Modal Awal) */}
                 <AnimatePresence>
                   {parseFloat(formData.currentAmount) > 0 && (
                     <motion.div
@@ -411,28 +443,36 @@ export default function SavingsPage() {
                       exit={{ opacity: 0, height: 0 }}
                       className='overflow-hidden'
                     >
-                      <div className='bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors mt-1'>
-                        <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-2'>
-                          Ambil Uang Dari
-                        </label>
-                        <select
-                          value={initialSourceAcc}
-                          onChange={(e) => setInitialSourceAcc(e.target.value)}
-                          className='w-full bg-transparent outline-none text-sm font-bold text-text-primary appearance-none cursor-pointer'
-                        >
-                          {accounts.map((acc) => (
-                            <option key={acc.id} value={acc.id}>
-                              {acc.name} (Rp{' '}
-                              {acc.balance.toLocaleString('id-ID')})
-                            </option>
-                          ))}
-                        </select>
+                      <div
+                        onClick={() => setAccountPickerTarget('initial')}
+                        className='bg-bg/50 rounded-[1.5rem] p-4 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group mt-1'
+                      >
+                        <div>
+                          <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
+                            Ambil Uang Dari
+                          </label>
+                          <div className='font-bold text-text-primary text-sm'>
+                            {accounts.find((a) => a.id === initialSourceAcc)
+                              ?.name || 'Pilih Sumber'}
+                            {initialSourceAcc && (
+                              <span className='text-xs font-medium text-text-secondary ml-2 whitespace-nowrap hidden sm:inline-block'>
+                                (Rp{' '}
+                                {accounts
+                                  .find((a) => a.id === initialSourceAcc)
+                                  ?.balance.toLocaleString('id-ID')}
+                                )
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                          <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                        </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                {/* Date Input yg Mudah di-Klik */}
                 <div className='relative bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors flex items-center justify-between group'>
                   <div>
                     <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
@@ -465,7 +505,7 @@ export default function SavingsPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSave}
-                  className='w-full py-4 bg-gradient-to-r from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] dark:shadow-[0_10px_20px_rgb(155,126,222,0.2)] mt-2'
+                  className='w-full py-4 bg-gradient-to-r from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] mt-2'
                 >
                   Mulai Nabung!
                 </motion.button>
@@ -547,23 +587,33 @@ export default function SavingsPage() {
                   </div>
                 </div>
 
-                <div className='bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors'>
-                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-2'>
-                    {manageData.type === 'add'
-                      ? 'Ambil Uang Dari'
-                      : 'Cairkan Ke Dompet'}
-                  </label>
-                  <select
-                    value={selectedAccountId}
-                    onChange={(e) => setSelectedAccountId(e.target.value)}
-                    className='w-full bg-transparent outline-none text-sm font-bold text-text-primary appearance-none cursor-pointer'
-                  >
-                    {accounts.map((acc) => (
-                      <option key={acc.id} value={acc.id}>
-                        {acc.name} (Rp {acc.balance.toLocaleString('id-ID')})
-                      </option>
-                    ))}
-                  </select>
+                <div
+                  onClick={() => setAccountPickerTarget('manage')}
+                  className='bg-bg/50 rounded-[1.5rem] p-4 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
+                >
+                  <div>
+                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
+                      {manageData.type === 'add'
+                        ? 'Ambil Uang Dari'
+                        : 'Cairkan Ke Dompet'}
+                    </label>
+                    <div className='font-bold text-text-primary text-sm'>
+                      {accounts.find((a) => a.id === selectedAccountId)?.name ||
+                        'Pilih Sumber'}
+                      {selectedAccountId && (
+                        <span className='text-xs font-medium text-text-secondary ml-2 whitespace-nowrap hidden sm:inline-block'>
+                          (Rp{' '}
+                          {accounts
+                            .find((a) => a.id === selectedAccountId)
+                            ?.balance.toLocaleString('id-ID')}
+                          )
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                    <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                  </div>
                 </div>
 
                 <motion.button
@@ -579,12 +629,186 @@ export default function SavingsPage() {
           </>
         )}
       </AnimatePresence>
+
+      {/* --- BOTTOM SHEET: KONFIRMASI HAPUS / SELESAI TARGET --- */}
+      <AnimatePresence>
+        {confirmActionData && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setConfirmActionData(null)}
+              className='fixed inset-0 z-[60] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto flex flex-col'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  {confirmActionData.action === 'complete' ? (
+                    <>
+                      <CheckCircle2 className='w-6 h-6 text-income' />{' '}
+                      Selesaikan Target
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className='w-6 h-6 text-expense' /> Hapus
+                      Target
+                    </>
+                  )}
+                </h3>
+                <button
+                  onClick={() => setConfirmActionData(null)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+
+              <div className='mb-6 text-sm text-text-secondary leading-relaxed'>
+                {confirmActionData.action === 'complete'
+                  ? `Selamat! Target "${confirmActionData.plan.title}" sudah tercapai.`
+                  : `Yakin mau menghapus target "${confirmActionData.plan.title}"?`}
+                {confirmActionData.plan.currentAmount > 0 && (
+                  <span className='block mt-2 font-bold text-text-primary'>
+                    Dana terkumpul sebesar{' '}
+                    <span
+                      className={
+                        confirmActionData.action === 'complete'
+                          ? 'text-income'
+                          : 'text-expense'
+                      }
+                    >
+                      Rp{' '}
+                      {confirmActionData.plan.currentAmount.toLocaleString(
+                        'id-ID',
+                      )}
+                    </span>{' '}
+                    akan dicairkan kembali ke dompetmu.
+                  </span>
+                )}
+              </div>
+
+              {confirmActionData.plan.currentAmount > 0 && (
+                <div className='space-y-4 mb-6'>
+                  <div
+                    onClick={() => setAccountPickerTarget('confirm')}
+                    className='bg-bg/50 rounded-[1.5rem] p-4 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
+                  >
+                    <div>
+                      <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
+                        Cairkan Ke Dompet
+                      </label>
+                      <div className='font-bold text-text-primary text-sm'>
+                        {accounts.find((a) => a.id === selectedAccountId)
+                          ?.name || 'Pilih Sumber'}
+                        {selectedAccountId && (
+                          <span className='text-xs font-medium text-text-secondary ml-2 whitespace-nowrap hidden sm:inline-block'>
+                            (Rp{' '}
+                            {accounts
+                              .find((a) => a.id === selectedAccountId)
+                              ?.balance.toLocaleString('id-ID')}
+                            )
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                      <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <motion.button
+                whileHover={{ scale: 1.02 }}
+                whileTap={{ scale: 0.98 }}
+                onClick={handleExecuteAction}
+                className={`w-full py-4 text-surface font-black rounded-[1.5rem] shadow-lg mt-2 ${confirmActionData.action === 'complete' ? 'bg-income hover:bg-green-600 shadow-income/30' : 'bg-expense hover:bg-red-600 shadow-expense/30'}`}
+              >
+                {confirmActionData.action === 'complete'
+                  ? 'Cairkan & Selesai'
+                  : confirmActionData.plan.currentAmount > 0
+                    ? 'Cairkan & Hapus'
+                    : 'Ya, Hapus Target'}
+              </motion.button>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* --- REUSABLE MODAL PILIH DOMPET --- */}
+      <AnimatePresence>
+        {accountPickerTarget && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setAccountPickerTarget(null)}
+              className='fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm'
+            />
+            <motion.div
+              variants={bottomSheetVariants}
+              initial='hidden'
+              animate='visible'
+              exit='exit'
+              className='fixed inset-x-0 bottom-0 z-[90] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto'
+            >
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6'>
+                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                  <Wallet className='w-6 h-6 text-primary' /> Pilih Dompet
+                </h3>
+                <button
+                  onClick={() => setAccountPickerTarget(null)}
+                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                >
+                  <X className='w-5 h-5' />
+                </button>
+              </div>
+              <div className='space-y-3 max-h-[50vh] overflow-y-auto scrollbar-hide pb-4'>
+                {accounts.map((acc) => {
+                  const isActive =
+                    (accountPickerTarget === 'initial' &&
+                      initialSourceAcc === acc.id) ||
+                    (accountPickerTarget !== 'initial' &&
+                      selectedAccountId === acc.id);
+                  return (
+                    <button
+                      key={acc.id}
+                      onClick={() => {
+                        if (accountPickerTarget === 'initial')
+                          setInitialSourceAcc(acc.id);
+                        else setSelectedAccountId(acc.id);
+                        setAccountPickerTarget(null);
+                      }}
+                      className={`w-full flex justify-between items-center p-4 rounded-[1.2rem] transition-colors border ${isActive ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-bg text-text-primary border-transparent hover:border-border'}`}
+                    >
+                      <span className='font-bold'>{acc.name}</span>
+                      <span className='text-sm font-bold opacity-80'>
+                        Rp {acc.balance.toLocaleString('id-ID')}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </main>
   );
 }
 
 // --- SUB-COMPONENT: SAVING CARD ---
-function SavingCard({ plan, onDelete, onManage }) {
+function SavingCard({ plan, onConfirmAction, onManage }) {
   const formatRupiah = (num) =>
     new Intl.NumberFormat('id-ID', {
       style: 'currency',
@@ -592,10 +816,8 @@ function SavingCard({ plan, onDelete, onManage }) {
       maximumFractionDigits: 0,
     }).format(num || 0);
 
-  // Perhitungan Proyeksi
   const stats = useMemo(() => {
     const today = new Date();
-    // Safety check supaya kalau datanya aneh nggak error layarnya
     const start = plan.startDate ? parseISO(plan.startDate) : today;
     const end = plan.deadline ? parseISO(plan.deadline) : today;
 
@@ -620,7 +842,6 @@ function SavingCard({ plan, onDelete, onManage }) {
     };
   }, [plan]);
 
-  // Logic Teks "Daily Sacrifice" yang Nyata & Realistis
   const getSacrificeText = (dailyAmount) => {
     if (dailyAmount <= 5000) return 'Tahan jajan cilok sehari aja!';
     if (dailyAmount <= 15000) return 'Kurangin jajan es teh / cemilan manis';
@@ -635,14 +856,13 @@ function SavingCard({ plan, onDelete, onManage }) {
 
   return (
     <motion.div
-      layout // Biar pas di-delete animasinya geser ke atas dengan mulus
+      layout
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.3 }}
       className='bg-surface/80 backdrop-blur-xl rounded-[2rem] border border-border shadow-sm overflow-hidden relative transition-all group'
     >
-      {/* Background Decor */}
       <div className='absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none'>
         <Target className='w-32 h-32 text-text-primary' />
       </div>
@@ -661,14 +881,13 @@ function SavingCard({ plan, onDelete, onManage }) {
             </div>
           </div>
           <button
-            onClick={onDelete}
+            onClick={() => onConfirmAction(plan, 'delete')}
             className='p-2 text-text-secondary hover:text-expense hover:bg-expense/10 rounded-xl transition-colors'
           >
             <Trash2 className='w-4 h-4' />
           </button>
         </div>
 
-        {/* Progress Bar */}
         <div className='mb-6'>
           <div className='flex justify-between items-end mb-2'>
             <span className='text-3xl font-black text-text-primary'>
@@ -691,25 +910,24 @@ function SavingCard({ plan, onDelete, onManage }) {
           </div>
         </div>
 
-        {/* Aksi Nabung & Tarik */}
-        <div className='flex gap-2 mb-6'>
-          <button
-            onClick={() => onManage('add')}
-            disabled={stats.isCompleted}
-            className='flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-surface font-bold text-sm rounded-2xl hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50'
-          >
-            <PlusCircle className='w-4 h-4' /> Nabung
-          </button>
-          <button
-            onClick={() => onManage('withdraw')}
-            disabled={plan.currentAmount <= 0}
-            className='flex-[0.5] flex items-center justify-center py-3 bg-bg border border-border text-text-primary font-bold text-sm rounded-2xl hover:bg-bg-hover transition-colors shadow-sm disabled:opacity-50'
-          >
-            Tarik
-          </button>
-        </div>
+        {!stats.isCompleted && (
+          <div className='flex gap-2 mb-6'>
+            <button
+              onClick={() => onManage('add')}
+              className='flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-surface font-bold text-sm rounded-2xl hover:opacity-90 transition-opacity shadow-sm'
+            >
+              <PlusCircle className='w-4 h-4' /> Nabung
+            </button>
+            <button
+              onClick={() => onManage('withdraw')}
+              disabled={plan.currentAmount <= 0}
+              className='flex-[0.5] flex items-center justify-center py-3 bg-bg border border-border text-text-primary font-bold text-sm rounded-2xl hover:bg-bg-hover transition-colors shadow-sm disabled:opacity-50'
+            >
+              Tarik
+            </button>
+          </div>
+        )}
 
-        {/* Projection Grid */}
         {!stats.isCompleted ? (
           <div className='grid grid-cols-3 gap-2 mb-6'>
             <div className='bg-surface border border-border p-3 rounded-2xl text-center'>
@@ -738,17 +956,29 @@ function SavingCard({ plan, onDelete, onManage }) {
             </div>
           </div>
         ) : (
-          <div className='bg-income/10 p-4 rounded-[1.5rem] border border-income/20 flex items-center gap-3 mb-6'>
-            <div className='w-8 h-8 bg-income/20 rounded-full flex items-center justify-center flex-shrink-0'>
-              <CheckCircle2 className='w-5 h-5 text-income' />
+          <div className='bg-income/10 p-5 rounded-[1.5rem] border border-income/20 flex flex-col gap-4 mb-6'>
+            <div className='flex items-center gap-3'>
+              <div className='w-10 h-10 bg-income/20 rounded-full flex items-center justify-center flex-shrink-0'>
+                <CheckCircle2 className='w-6 h-6 text-income' />
+              </div>
+              <div>
+                <p className='text-sm font-bold text-income leading-tight'>
+                  Target tercapai! 🎉
+                </p>
+                <p className='text-[10px] font-medium text-income/80 mt-0.5'>
+                  Kamu berhasil mengumpulkan {formatRupiah(plan.currentAmount)}
+                </p>
+              </div>
             </div>
-            <p className='text-xs font-bold text-income leading-tight'>
-              Target tercapai! Kamu keren banget! ✨
-            </p>
+            <button
+              onClick={() => onConfirmAction(plan, 'complete')}
+              className='w-full py-3 bg-income text-surface font-bold rounded-xl shadow-sm hover:opacity-90 active:scale-95 transition-all text-sm flex items-center justify-center gap-2'
+            >
+              <Wallet className='w-4 h-4' /> Selesaikan & Cairkan
+            </button>
           </div>
         )}
 
-        {/* Insight Feature: Daily Sacrifice (Dynamic Text) */}
         {!stats.isCompleted && (
           <div className='bg-warning/10 p-4 rounded-[1.5rem] border border-warning/20 flex items-center gap-4'>
             <div className='w-10 h-10 bg-surface rounded-[1rem] flex items-center justify-center shadow-sm flex-shrink-0'>
