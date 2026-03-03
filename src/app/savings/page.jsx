@@ -69,6 +69,7 @@ export default function SavingsPage() {
 
   // State Pengendali Modal Pilih Dompet (Biar reusable)
   const [accountPickerTarget, setAccountPickerTarget] = useState(null); // 'initial', 'manage', 'confirm'
+  const [isAccountModalOpen, setIsAccountModalOpen] = useState(false);
 
   // Input States
   const [manageAmount, setManageAmount] = useState('');
@@ -111,11 +112,9 @@ export default function SavingsPage() {
     const target = parseFloat(formData.targetAmount);
     const initial = parseFloat(formData.currentAmount || 0);
 
-    // Jika ada modal awal, potong dari dompet & catat sebagai pengeluaran
     if (initial > 0) {
       if (!initialSourceAcc)
         return alert('Pilih sumber dompet untuk modal awal dulu! 🏦');
-
       const currentAccs = [...accounts];
       const accIndex = currentAccs.findIndex((a) => a.id === initialSourceAcc);
 
@@ -236,7 +235,6 @@ export default function SavingsPage() {
   const handleExecuteAction = async () => {
     const { plan, action } = confirmActionData;
 
-    // Jika tabungan ada isinya, cairkan dulu ke dompet utama
     if (plan.currentAmount > 0) {
       if (!selectedAccountId)
         return alert('Pilih dompet tujuan pencairan dulu bossque!');
@@ -268,7 +266,6 @@ export default function SavingsPage() {
       await db.setItem('transactions', [newTxn, ...history]);
     }
 
-    // Hapus plan dari daftar
     const updatedSavings = savings.filter((s) => s.id !== plan.id);
     setSavings(updatedSavings);
     await db.setItem('savings_plans', updatedSavings);
@@ -284,15 +281,17 @@ export default function SavingsPage() {
     }).format(num || 0);
 
   return (
-    <main className='min-h-screen bg-bg relative overflow-x-hidden font-sans pb-28'>
-      <div className='absolute top-[-5%] right-[-10%] w-64 h-64 bg-primary/20 rounded-full mix-blend-multiply filter blur-[80px] z-0 pointer-events-none'></div>
+    <main className='min-h-screen bg-bg relative overflow-x-hidden font-sans pb-28 md:pb-12 md:pl-32 lg:pl-36 transition-all duration-500'>
+      {/* Background Soft Glow */}
+      <div className='absolute top-[-5%] right-[-10%] w-64 h-64 md:w-96 md:h-96 lg:w-[40rem] lg:h-[40rem] bg-primary/20 rounded-full mix-blend-multiply filter blur-[80px] lg:blur-[120px] z-0 pointer-events-none'></div>
 
       <motion.div
         variants={pageVariants}
         initial='hidden'
         animate='visible'
-        className='relative z-10 p-6 max-w-md mx-auto'
+        className='relative z-10 p-6 max-w-md md:max-w-3xl lg:max-w-6xl xl:max-w-7xl mx-auto'
       >
+        {/* HEADER */}
         <header className='flex justify-between items-center mb-8 pt-2'>
           <div className='flex items-center gap-4'>
             <motion.button
@@ -303,7 +302,7 @@ export default function SavingsPage() {
             >
               <ArrowLeft className='w-5 h-5 text-text-primary group-hover:text-primary transition-colors' />
             </motion.button>
-            <h1 className='text-xl font-black text-text-primary tracking-tight'>
+            <h1 className='text-xl md:text-2xl font-black text-text-primary tracking-tight'>
               Saving Plan
             </h1>
           </div>
@@ -311,14 +310,14 @@ export default function SavingsPage() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowAddModal(true)}
-            className='w-11 h-11 bg-gradient-to-tr from-primary to-primary-hover rounded-2xl flex items-center justify-center shadow-[0_8px_20px_rgb(220,198,255,0.4)] text-surface border border-white/20'
+            className='w-11 h-11 md:w-12 md:h-12 bg-gradient-to-tr from-primary to-primary-hover rounded-2xl flex items-center justify-center shadow-[0_8px_20px_rgb(220,198,255,0.4)] dark:shadow-[0_8px_20px_rgb(155,126,222,0.3)] text-surface border border-white/20'
           >
-            <Plus className='w-6 h-6 stroke-[3]' />
+            <Plus className='w-6 h-6 md:w-7 md:h-7 stroke-[3]' />
           </motion.button>
         </header>
 
-        {/* --- LIST SAVING PLANS --- */}
-        <div className='space-y-5'>
+        {/* --- LIST SAVING PLANS (GRID DI DESKTOP) --- */}
+        <div className='grid grid-cols-1 lg:grid-cols-2 gap-5 md:gap-6'>
           <AnimatePresence mode='popLayout'>
             {savings.length === 0 ? (
               <motion.div
@@ -326,13 +325,19 @@ export default function SavingsPage() {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className='text-center py-20 bg-surface/60 backdrop-blur-md rounded-[2.5rem] border border-dashed border-border shadow-sm'
+                className='lg:col-span-2 text-center py-20 bg-surface/60 backdrop-blur-md rounded-[2.5rem] border border-dashed border-border shadow-sm'
               >
-                <Target className='w-14 h-14 text-text-secondary/30 mx-auto mb-4' />
-                <p className='text-text-secondary font-bold text-sm'>
+                <Target className='w-14 h-14 md:w-16 md:h-16 text-text-secondary/30 mx-auto mb-4' />
+                <p className='text-text-secondary font-bold text-sm md:text-base'>
                   Belum ada target? <br />
                   Mimpi aja dulu, catat kemudian! ✨
                 </p>
+                <button
+                  onClick={() => setShowAddModal(true)}
+                  className='mt-6 px-6 py-3 bg-primary text-surface font-bold rounded-[1.2rem] shadow-sm transition-transform active:scale-95 text-sm md:text-base hover:opacity-90 lg:hidden'
+                >
+                  Bikin Target Pertama
+                </button>
               </motion.div>
             ) : (
               savings.map((plan) => (
@@ -366,30 +371,31 @@ export default function SavingsPage() {
               initial='hidden'
               animate='visible'
               exit='exit'
-              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto flex flex-col max-h-[90vh]'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] md:rounded-t-[3rem] p-6 md:p-8 shadow-2xl border-t border-border max-w-md md:max-w-2xl mx-auto flex flex-col max-h-[90vh]'
             >
               <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
-              <div className='flex justify-between items-center mb-6 flex-shrink-0'>
-                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
-                  <Target className='w-6 h-6 text-primary' /> Target Baru
+              <div className='flex justify-between items-center mb-6 md:mb-8 flex-shrink-0'>
+                <h3 className='font-black text-xl md:text-2xl text-text-primary flex items-center gap-2'>
+                  <Target className='w-6 h-6 md:w-8 md:h-8 text-primary' />{' '}
+                  Target Baru
                 </h3>
                 <button
                   onClick={() => setShowAddModal(false)}
-                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                  className='w-8 h-8 md:w-10 md:h-10 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
                 >
                   <X className='w-5 h-5' />
                 </button>
               </div>
 
-              <div className='space-y-4 overflow-y-auto scrollbar-hide pb-4 px-1'>
-                <div className='bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors'>
-                  <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+              <div className='space-y-4 md:space-y-6 overflow-y-auto scrollbar-hide pb-4 px-1'>
+                <div className='bg-bg/50 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-border focus-within:border-primary transition-colors'>
+                  <label className='text-[10px] md:text-xs font-black text-text-secondary uppercase tracking-widest block mb-1'>
                     Nama Keinginan
                   </label>
                   <input
                     type='text'
                     placeholder='Misal: iPhone 17 Pro Max'
-                    className='w-full bg-transparent font-bold outline-none text-text-primary text-sm placeholder:font-normal'
+                    className='w-full bg-transparent font-bold outline-none text-text-primary text-sm md:text-base placeholder:font-normal'
                     value={formData.title}
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
@@ -397,15 +403,15 @@ export default function SavingsPage() {
                   />
                 </div>
 
-                <div className='grid grid-cols-2 gap-3'>
-                  <div className='bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors'>
-                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                <div className='grid grid-cols-2 gap-3 md:gap-5'>
+                  <div className='bg-bg/50 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-border focus-within:border-primary transition-colors'>
+                    <label className='text-[10px] md:text-xs font-black text-text-secondary uppercase tracking-widest block mb-1'>
                       Target (Rp)
                     </label>
                     <input
                       type='number'
                       placeholder='0'
-                      className='w-full bg-transparent font-bold outline-none text-text-primary text-sm'
+                      className='w-full bg-transparent font-bold outline-none text-text-primary text-sm md:text-base'
                       value={formData.targetAmount}
                       onChange={(e) =>
                         setFormData({
@@ -415,14 +421,14 @@ export default function SavingsPage() {
                       }
                     />
                   </div>
-                  <div className='bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors'>
-                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                  <div className='bg-bg/50 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-border focus-within:border-primary transition-colors'>
+                    <label className='text-[10px] md:text-xs font-black text-text-secondary uppercase tracking-widest block mb-1'>
                       Modal Awal
                     </label>
                     <input
                       type='number'
                       placeholder='Opsional'
-                      className='w-full bg-transparent font-bold outline-none text-text-primary text-sm placeholder:font-normal'
+                      className='w-full bg-transparent font-bold outline-none text-text-primary text-sm md:text-base placeholder:font-normal'
                       value={formData.currentAmount}
                       onChange={(e) =>
                         setFormData({
@@ -444,14 +450,18 @@ export default function SavingsPage() {
                       className='overflow-hidden'
                     >
                       <div
-                        onClick={() => setAccountPickerTarget('initial')}
-                        className='bg-bg/50 rounded-[1.5rem] p-4 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group mt-1'
+                        onClick={() => {
+                          setAccountPickerTarget('initial');
+                          setIsAccountModalOpen(true);
+                        }}
+                        className='bg-primary/5 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-primary/20 cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group mt-1'
                       >
                         <div>
-                          <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
-                            Ambil Uang Dari
+                          <label className='text-[10px] md:text-xs font-black text-primary uppercase tracking-widest block mb-1 group-hover:text-primary/80 transition-colors flex items-center gap-1'>
+                            <Wallet className='w-3 h-3 md:w-4 md:h-4' /> Potong
+                            Saldo Dari
                           </label>
-                          <div className='font-bold text-text-primary text-sm'>
+                          <div className='font-bold text-text-primary text-sm md:text-base'>
                             {accounts.find((a) => a.id === initialSourceAcc)
                               ?.name || 'Pilih Sumber'}
                             {initialSourceAcc && (
@@ -465,20 +475,21 @@ export default function SavingsPage() {
                             )}
                           </div>
                         </div>
-                        <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
-                          <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                        <div className='w-8 h-8 md:w-10 md:h-10 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                          <ChevronDown className='w-4 h-4 md:w-5 md:h-5 text-text-secondary group-hover:text-primary transition-colors' />
                         </div>
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
-                <div className='relative bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors flex items-center justify-between group'>
+                {/* Date Input yg Mudah di-Klik */}
+                <div className='relative bg-bg/50 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-border focus-within:border-primary transition-colors flex items-center justify-between group'>
                   <div>
-                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                    <label className='text-[10px] md:text-xs font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-primary transition-colors'>
                       Deadline
                     </label>
-                    <div className='font-bold text-text-primary text-sm'>
+                    <div className='font-bold text-text-primary text-sm md:text-base'>
                       {formData.deadline ? (
                         format(parseISO(formData.deadline), 'dd MMMM yyyy', {
                           locale: localeId,
@@ -490,7 +501,7 @@ export default function SavingsPage() {
                       )}
                     </div>
                   </div>
-                  <Calendar className='w-5 h-5 text-text-secondary group-hover:text-primary transition-colors flex-shrink-0' />
+                  <Calendar className='w-5 h-5 md:w-6 md:h-6 text-text-secondary group-hover:text-primary transition-colors flex-shrink-0' />
                   <input
                     type='date'
                     className='absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10'
@@ -505,7 +516,7 @@ export default function SavingsPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleSave}
-                  className='w-full py-4 bg-gradient-to-r from-primary to-primary-hover text-surface font-black rounded-[1.5rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] mt-2'
+                  className='w-full py-4 md:py-5 bg-gradient-to-r from-primary to-primary-hover text-surface text-base md:text-lg font-black rounded-[1.5rem] md:rounded-[2rem] shadow-[0_10px_20px_rgb(220,198,255,0.4)] dark:shadow-[0_10px_20px_rgb(155,126,222,0.2)] mt-4 border border-white/20'
                 >
                   Mulai Nabung!
                 </motion.button>
@@ -531,56 +542,56 @@ export default function SavingsPage() {
               initial='hidden'
               animate='visible'
               exit='exit'
-              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto flex flex-col'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] md:rounded-t-[3rem] p-6 md:p-8 shadow-2xl border-t border-border max-w-md md:max-w-2xl mx-auto flex flex-col'
             >
-              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6'></div>
-              <div className='flex justify-between items-center mb-6'>
-                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+              <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
+              <div className='flex justify-between items-center mb-6 md:mb-8'>
+                <h3 className='font-black text-xl md:text-2xl text-text-primary flex items-center gap-2'>
                   {manageData.type === 'add' ? (
                     <>
-                      <PlusCircle className='w-6 h-6 text-income' /> Isi
-                      Tabungan
+                      <PlusCircle className='w-6 h-6 md:w-8 md:h-8 text-income' />{' '}
+                      Isi Tabungan
                     </>
                   ) : (
                     <>
-                      <MinusCircle className='w-6 h-6 text-expense' /> Tarik
-                      Tabungan
+                      <MinusCircle className='w-6 h-6 md:w-8 md:h-8 text-expense' />{' '}
+                      Tarik Tabungan
                     </>
                   )}
                 </h3>
                 <button
                   onClick={() => setManageData(null)}
-                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                  className='w-8 h-8 md:w-10 md:h-10 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
                 >
                   <X className='w-5 h-5' />
                 </button>
               </div>
 
-              <div className='mb-6'>
-                <p className='text-xs text-text-secondary font-semibold mb-1'>
+              <div className='mb-6 md:mb-8'>
+                <p className='text-xs md:text-sm text-text-secondary font-semibold mb-1'>
                   Target:{' '}
                   <span className='text-text-primary font-black'>
                     {manageData.plan.title}
                   </span>
                 </p>
-                <p className='text-[10px] font-black uppercase text-text-secondary tracking-widest bg-bg px-3 py-1.5 rounded-lg inline-block border border-border'>
+                <p className='text-[10px] md:text-xs font-black uppercase text-text-secondary tracking-widest bg-bg px-3 py-1.5 md:py-2 rounded-lg border border-border inline-block'>
                   Terkumpul: {formatRupiah(manageData.plan.currentAmount)}
                 </p>
               </div>
 
-              <div className='space-y-4'>
-                <div className='bg-bg/50 rounded-[1.5rem] p-4 border border-border focus-within:border-primary transition-colors flex items-center'>
-                  <span className='text-2xl font-black text-text-secondary mr-2'>
+              <div className='space-y-4 md:space-y-6'>
+                <div className='bg-bg/50 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-border focus-within:border-primary transition-colors flex items-center'>
+                  <span className='text-2xl md:text-3xl font-black text-text-secondary mr-3 md:mr-4'>
                     Rp
                   </span>
                   <div className='w-full'>
-                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                    <label className='text-[10px] md:text-xs font-black text-text-secondary uppercase tracking-widest block mb-1'>
                       Nominal
                     </label>
                     <input
                       type='number'
                       placeholder='0'
-                      className='w-full bg-transparent font-black text-xl outline-none text-text-primary'
+                      className='w-full bg-transparent font-black text-xl md:text-2xl outline-none text-text-primary'
                       value={manageAmount}
                       onChange={(e) => setManageAmount(e.target.value)}
                     />
@@ -588,16 +599,19 @@ export default function SavingsPage() {
                 </div>
 
                 <div
-                  onClick={() => setAccountPickerTarget('manage')}
-                  className='bg-bg/50 rounded-[1.5rem] p-4 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
+                  onClick={() => {
+                    setAccountPickerTarget('manage');
+                    setIsAccountModalOpen(true);
+                  }}
+                  className='bg-bg/50 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
                 >
                   <div>
-                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
+                    <label className='text-[10px] md:text-xs font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
                       {manageData.type === 'add'
                         ? 'Ambil Uang Dari'
                         : 'Cairkan Ke Dompet'}
                     </label>
-                    <div className='font-bold text-text-primary text-sm'>
+                    <div className='font-bold text-text-primary text-sm md:text-base'>
                       {accounts.find((a) => a.id === selectedAccountId)?.name ||
                         'Pilih Sumber'}
                       {selectedAccountId && (
@@ -611,8 +625,8 @@ export default function SavingsPage() {
                       )}
                     </div>
                   </div>
-                  <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
-                    <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                  <div className='w-8 h-8 md:w-10 md:h-10 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                    <ChevronDown className='w-4 h-4 md:w-5 md:h-5 text-text-secondary group-hover:text-primary transition-colors' />
                   </div>
                 </div>
 
@@ -620,7 +634,7 @@ export default function SavingsPage() {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={handleManageSubmit}
-                  className={`w-full py-4 text-surface font-black rounded-[1.5rem] shadow-lg mt-2 ${manageData.type === 'add' ? 'bg-primary hover:bg-primary-hover shadow-primary/30' : 'bg-surface border-2 border-border text-text-primary hover:border-text-secondary shadow-none'}`}
+                  className={`w-full py-4 md:py-5 text-surface font-black text-base md:text-lg rounded-[1.5rem] md:rounded-[2rem] shadow-lg mt-2 md:mt-4 ${manageData.type === 'add' ? 'bg-primary hover:bg-primary-hover shadow-primary/30 border border-white/20' : 'bg-surface border-2 border-border text-text-primary hover:border-text-secondary shadow-none'}`}
                 >
                   Konfirmasi {manageData.type === 'add' ? 'Nabung' : 'Tarik'}
                 </motion.button>
@@ -646,43 +660,43 @@ export default function SavingsPage() {
               initial='hidden'
               animate='visible'
               exit='exit'
-              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto flex flex-col'
+              className='fixed inset-x-0 bottom-0 z-[70] bg-surface rounded-t-[2.5rem] md:rounded-t-[3rem] p-6 md:p-8 shadow-2xl border-t border-border max-w-md md:max-w-2xl mx-auto flex flex-col'
             >
               <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
-              <div className='flex justify-between items-center mb-6'>
-                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+              <div className='flex justify-between items-center mb-6 md:mb-8'>
+                <h3 className='font-black text-xl md:text-2xl text-text-primary flex items-center gap-2'>
                   {confirmActionData.action === 'complete' ? (
                     <>
-                      <CheckCircle2 className='w-6 h-6 text-income' />{' '}
+                      <CheckCircle2 className='w-6 h-6 md:w-8 md:h-8 text-income' />{' '}
                       Selesaikan Target
                     </>
                   ) : (
                     <>
-                      <AlertTriangle className='w-6 h-6 text-expense' /> Hapus
-                      Target
+                      <AlertTriangle className='w-6 h-6 md:w-8 md:h-8 text-expense' />{' '}
+                      Hapus Target
                     </>
                   )}
                 </h3>
                 <button
                   onClick={() => setConfirmActionData(null)}
-                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                  className='w-8 h-8 md:w-10 md:h-10 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
                 >
                   <X className='w-5 h-5' />
                 </button>
               </div>
 
-              <div className='mb-6 text-sm text-text-secondary leading-relaxed'>
+              <div className='mb-6 md:mb-8 text-sm md:text-base text-text-secondary leading-relaxed bg-bg border border-border p-5 rounded-2xl'>
                 {confirmActionData.action === 'complete'
-                  ? `Selamat! Target "${confirmActionData.plan.title}" sudah tercapai.`
+                  ? `Selamat! Target "${confirmActionData.plan.title}" sudah tercapai. 🎉`
                   : `Yakin mau menghapus target "${confirmActionData.plan.title}"?`}
                 {confirmActionData.plan.currentAmount > 0 && (
-                  <span className='block mt-2 font-bold text-text-primary'>
+                  <span className='block mt-3 font-bold text-text-primary'>
                     Dana terkumpul sebesar{' '}
                     <span
                       className={
                         confirmActionData.action === 'complete'
-                          ? 'text-income'
-                          : 'text-expense'
+                          ? 'text-income bg-income/10 px-2 py-0.5 rounded-md'
+                          : 'text-expense bg-expense/10 px-2 py-0.5 rounded-md'
                       }
                     >
                       Rp{' '}
@@ -696,16 +710,19 @@ export default function SavingsPage() {
               </div>
 
               {confirmActionData.plan.currentAmount > 0 && (
-                <div className='space-y-4 mb-6'>
+                <div className='space-y-4 mb-6 md:mb-8'>
                   <div
-                    onClick={() => setAccountPickerTarget('confirm')}
-                    className='bg-bg/50 rounded-[1.5rem] p-4 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
+                    onClick={() => {
+                      setAccountPickerTarget('confirm');
+                      setIsAccountModalOpen(true);
+                    }}
+                    className='bg-bg/50 rounded-[1.5rem] md:rounded-[2rem] p-4 md:p-5 border border-border cursor-pointer hover:border-primary/50 transition-all flex justify-between items-center group'
                   >
                     <div>
-                      <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
+                      <label className='text-[10px] md:text-xs font-black text-text-secondary uppercase tracking-widest block mb-1 group-hover:text-text-primary transition-colors'>
                         Cairkan Ke Dompet
                       </label>
-                      <div className='font-bold text-text-primary text-sm'>
+                      <div className='font-bold text-text-primary text-sm md:text-base'>
                         {accounts.find((a) => a.id === selectedAccountId)
                           ?.name || 'Pilih Sumber'}
                         {selectedAccountId && (
@@ -719,8 +736,8 @@ export default function SavingsPage() {
                         )}
                       </div>
                     </div>
-                    <div className='w-8 h-8 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
-                      <ChevronDown className='w-4 h-4 text-text-secondary group-hover:text-primary transition-colors' />
+                    <div className='w-8 h-8 md:w-10 md:h-10 bg-surface group-hover:bg-primary/10 rounded-full flex items-center justify-center transition-colors'>
+                      <ChevronDown className='w-4 h-4 md:w-5 md:h-5 text-text-secondary group-hover:text-primary transition-colors' />
                     </div>
                   </div>
                 </div>
@@ -730,7 +747,7 @@ export default function SavingsPage() {
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
                 onClick={handleExecuteAction}
-                className={`w-full py-4 text-surface font-black rounded-[1.5rem] shadow-lg mt-2 ${confirmActionData.action === 'complete' ? 'bg-income hover:bg-green-600 shadow-income/30' : 'bg-expense hover:bg-red-600 shadow-expense/30'}`}
+                className={`w-full py-4 md:py-5 text-surface text-base md:text-lg font-black rounded-[1.5rem] md:rounded-[2rem] shadow-lg mt-2 ${confirmActionData.action === 'complete' ? 'bg-income hover:bg-green-600 shadow-income/30 border border-white/20' : 'bg-expense hover:bg-red-600 shadow-expense/30 border border-white/20'}`}
               >
                 {confirmActionData.action === 'complete'
                   ? 'Cairkan & Selesai'
@@ -745,13 +762,13 @@ export default function SavingsPage() {
 
       {/* --- REUSABLE MODAL PILIH DOMPET --- */}
       <AnimatePresence>
-        {accountPickerTarget && (
+        {isAccountModalOpen && (
           <>
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setAccountPickerTarget(null)}
+              onClick={() => setIsAccountModalOpen(false)}
               className='fixed inset-0 z-[80] bg-black/40 backdrop-blur-sm'
             />
             <motion.div
@@ -759,21 +776,21 @@ export default function SavingsPage() {
               initial='hidden'
               animate='visible'
               exit='exit'
-              className='fixed inset-x-0 bottom-0 z-[90] bg-surface rounded-t-[2.5rem] p-6 shadow-2xl border-t border-border max-w-md mx-auto'
+              className='fixed inset-x-0 bottom-0 z-[90] bg-surface rounded-t-[2.5rem] md:rounded-t-[3rem] p-6 md:p-8 shadow-2xl border-t border-border max-w-md md:max-w-xl mx-auto'
             >
               <div className='w-12 h-1.5 bg-border rounded-full mx-auto mb-6 flex-shrink-0'></div>
               <div className='flex justify-between items-center mb-6'>
-                <h3 className='font-black text-xl text-text-primary flex items-center gap-2'>
+                <h3 className='font-black text-xl md:text-2xl text-text-primary flex items-center gap-2'>
                   <Wallet className='w-6 h-6 text-primary' /> Pilih Dompet
                 </h3>
                 <button
-                  onClick={() => setAccountPickerTarget(null)}
-                  className='w-8 h-8 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
+                  onClick={() => setIsAccountModalOpen(false)}
+                  className='w-8 h-8 md:w-10 md:h-10 bg-bg-hover rounded-full flex items-center justify-center text-text-secondary hover:bg-border transition-colors'
                 >
                   <X className='w-5 h-5' />
                 </button>
               </div>
-              <div className='space-y-3 max-h-[50vh] overflow-y-auto scrollbar-hide pb-4'>
+              <div className='space-y-3 max-h-[50vh] overflow-y-auto scrollbar-hide pb-4 px-1'>
                 {accounts.map((acc) => {
                   const isActive =
                     (accountPickerTarget === 'initial' &&
@@ -787,12 +804,14 @@ export default function SavingsPage() {
                         if (accountPickerTarget === 'initial')
                           setInitialSourceAcc(acc.id);
                         else setSelectedAccountId(acc.id);
-                        setAccountPickerTarget(null);
+                        setIsAccountModalOpen(false);
                       }}
-                      className={`w-full flex justify-between items-center p-4 rounded-[1.2rem] transition-colors border ${isActive ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-bg text-text-primary border-transparent hover:border-border'}`}
+                      className={`w-full flex justify-between items-center p-4 md:p-5 rounded-[1.2rem] md:rounded-[1.5rem] transition-colors border ${isActive ? 'bg-primary/10 border-primary/30 text-primary shadow-sm' : 'bg-bg text-text-primary border-transparent hover:border-border'}`}
                     >
-                      <span className='font-bold'>{acc.name}</span>
-                      <span className='text-sm font-bold opacity-80'>
+                      <span className='font-bold text-sm md:text-base'>
+                        {acc.name}
+                      </span>
+                      <span className='text-sm md:text-base font-bold opacity-80'>
                         Rp {acc.balance.toLocaleString('id-ID')}
                       </span>
                     </button>
@@ -844,14 +863,13 @@ function SavingCard({ plan, onConfirmAction, onManage }) {
 
   const getSacrificeText = (dailyAmount) => {
     if (dailyAmount <= 5000) return 'Tahan jajan cilok sehari aja!';
-    if (dailyAmount <= 15000) return 'Kurangin jajan es teh / cemilan manis';
+    if (dailyAmount <= 15000) return 'Kurangin jajan es teh / manis';
     if (dailyAmount <= 35000) return 'Sisihkan setara segelas es kopi susu';
     if (dailyAmount <= 75000) return 'Ganti makan siang di luar sama bekal';
-    if (dailyAmount <= 150000) return 'Skip dulu nongkrong cantiknya hari ini';
-    if (dailyAmount <= 300000) return 'Tunda dulu checkout keranjang oren-nya!';
-    if (dailyAmount <= 750000)
-      return 'Sisihkan sebagian gaji/uang jajan harianmu';
-    return 'Targetnya sultan nih, fokus kerja/usaha ya bossque! 🔥';
+    if (dailyAmount <= 150000) return 'Skip dulu nongkrong cantiknya';
+    if (dailyAmount <= 300000) return 'Tunda checkout keranjang oren!';
+    if (dailyAmount <= 750000) return 'Sisihkan gaji/uang jajan harianmu';
+    return 'Targetnya sultan nih, fokus kerja/usaha ya! 🔥';
   };
 
   return (
@@ -861,46 +879,46 @@ function SavingCard({ plan, onConfirmAction, onManage }) {
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, scale: 0.9 }}
       transition={{ duration: 0.3 }}
-      className='bg-surface/80 backdrop-blur-xl rounded-[2rem] border border-border shadow-sm overflow-hidden relative transition-all group'
+      className='bg-surface/80 backdrop-blur-xl rounded-[2rem] md:rounded-[2.5rem] border border-border shadow-sm overflow-hidden relative transition-all group'
     >
       <div className='absolute top-0 right-0 p-6 opacity-[0.03] pointer-events-none'>
-        <Target className='w-32 h-32 text-text-primary' />
+        <Target className='w-32 h-32 md:w-48 md:h-48 text-text-primary' />
       </div>
 
-      <div className='p-6 relative z-10'>
-        <div className='flex justify-between items-start mb-4'>
+      <div className='p-6 md:p-8 relative z-10'>
+        <div className='flex justify-between items-start mb-4 md:mb-6'>
           <div>
-            <h4 className='text-xl font-black text-text-primary mb-1 tracking-tight'>
+            <h4 className='text-xl md:text-2xl font-black text-text-primary mb-1 md:mb-2 tracking-tight'>
               {plan.title}
             </h4>
-            <div className='flex items-center gap-1.5 px-2.5 py-1 bg-bg rounded-lg inline-flex border border-border'>
-              <Calendar className='w-3 h-3 text-text-secondary' />
-              <p className='text-[10px] font-bold text-text-secondary uppercase tracking-widest'>
+            <div className='flex items-center gap-1.5 px-2.5 py-1 md:py-1.5 bg-bg rounded-lg inline-flex border border-border'>
+              <Calendar className='w-3 h-3 md:w-4 md:h-4 text-text-secondary' />
+              <p className='text-[10px] md:text-xs font-bold text-text-secondary uppercase tracking-widest'>
                 {stats.daysLeft} Hari Lagi
               </p>
             </div>
           </div>
           <button
             onClick={() => onConfirmAction(plan, 'delete')}
-            className='p-2 text-text-secondary hover:text-expense hover:bg-expense/10 rounded-xl transition-colors'
+            className='p-2 md:p-3 text-text-secondary hover:text-expense hover:bg-expense/10 rounded-xl md:rounded-2xl transition-colors'
           >
-            <Trash2 className='w-4 h-4' />
+            <Trash2 className='w-4 h-4 md:w-5 md:h-5' />
           </button>
         </div>
 
-        <div className='mb-6'>
-          <div className='flex justify-between items-end mb-2'>
-            <span className='text-3xl font-black text-text-primary'>
+        <div className='mb-6 md:mb-8'>
+          <div className='flex justify-between items-end mb-2 md:mb-3'>
+            <span className='text-3xl md:text-4xl font-black text-text-primary'>
               {stats.progress.toFixed(0)}%
             </span>
-            <span className='text-xs font-bold text-text-secondary'>
+            <span className='text-xs md:text-sm font-bold text-text-secondary'>
               {formatRupiah(plan.currentAmount)} /{' '}
               <span className='text-text-primary'>
                 {formatRupiah(plan.targetAmount)}
               </span>
             </span>
           </div>
-          <div className='w-full h-3.5 bg-bg border border-border rounded-full overflow-hidden shadow-inner'>
+          <div className='w-full h-3.5 md:h-4 bg-bg border border-border rounded-full overflow-hidden shadow-inner'>
             <motion.div
               initial={{ width: 0 }}
               animate={{ width: `${stats.progress}%` }}
@@ -911,17 +929,17 @@ function SavingCard({ plan, onConfirmAction, onManage }) {
         </div>
 
         {!stats.isCompleted && (
-          <div className='flex gap-2 mb-6'>
+          <div className='flex gap-2 mb-6 md:mb-8'>
             <button
               onClick={() => onManage('add')}
-              className='flex-1 flex items-center justify-center gap-2 py-3 bg-primary text-surface font-bold text-sm rounded-2xl hover:opacity-90 transition-opacity shadow-sm'
+              className='flex-1 flex items-center justify-center gap-2 py-3 md:py-4 bg-primary text-surface font-bold text-sm md:text-base rounded-2xl md:rounded-[1.5rem] hover:opacity-90 transition-opacity shadow-[0_8px_20px_rgb(220,198,255,0.4)]'
             >
-              <PlusCircle className='w-4 h-4' /> Nabung
+              <PlusCircle className='w-4 h-4 md:w-5 md:h-5' /> Nabung
             </button>
             <button
               onClick={() => onManage('withdraw')}
               disabled={plan.currentAmount <= 0}
-              className='flex-[0.5] flex items-center justify-center py-3 bg-bg border border-border text-text-primary font-bold text-sm rounded-2xl hover:bg-bg-hover transition-colors shadow-sm disabled:opacity-50'
+              className='flex-[0.5] flex items-center justify-center py-3 md:py-4 bg-bg border border-border text-text-primary font-bold text-sm md:text-base rounded-2xl md:rounded-[1.5rem] hover:bg-bg-hover transition-colors shadow-sm disabled:opacity-50'
             >
               Tarik
             </button>
@@ -929,66 +947,66 @@ function SavingCard({ plan, onConfirmAction, onManage }) {
         )}
 
         {!stats.isCompleted ? (
-          <div className='grid grid-cols-3 gap-2 mb-6'>
-            <div className='bg-surface border border-border p-3 rounded-2xl text-center'>
-              <p className='text-[8px] font-black text-text-secondary uppercase tracking-wider mb-1'>
+          <div className='grid grid-cols-3 gap-2 md:gap-3 mb-6 md:mb-8'>
+            <div className='bg-surface border border-border p-3 md:p-4 rounded-2xl md:rounded-3xl text-center'>
+              <p className='text-[8px] md:text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1'>
                 Harian
               </p>
-              <p className='text-xs font-black text-text-primary'>
+              <p className='text-xs md:text-sm font-black text-text-primary'>
                 {formatRupiah(stats.daily)}
               </p>
             </div>
-            <div className='bg-surface border border-border p-3 rounded-2xl text-center'>
-              <p className='text-[8px] font-black text-text-secondary uppercase tracking-wider mb-1'>
+            <div className='bg-surface border border-border p-3 md:p-4 rounded-2xl md:rounded-3xl text-center'>
+              <p className='text-[8px] md:text-[10px] font-black text-text-secondary uppercase tracking-wider mb-1'>
                 Mingguan
               </p>
-              <p className='text-xs font-black text-text-primary'>
+              <p className='text-xs md:text-sm font-black text-text-primary'>
                 {formatRupiah(stats.weekly)}
               </p>
             </div>
-            <div className='bg-primary/10 border border-primary/20 p-3 rounded-2xl text-center'>
-              <p className='text-[8px] font-black text-primary uppercase tracking-wider mb-1'>
+            <div className='bg-primary/10 border border-primary/20 p-3 md:p-4 rounded-2xl md:rounded-3xl text-center'>
+              <p className='text-[8px] md:text-[10px] font-black text-primary uppercase tracking-wider mb-1'>
                 Bulanan
               </p>
-              <p className='text-xs font-black text-text-primary'>
+              <p className='text-xs md:text-sm font-black text-text-primary'>
                 {formatRupiah(stats.monthly)}
               </p>
             </div>
           </div>
         ) : (
-          <div className='bg-income/10 p-5 rounded-[1.5rem] border border-income/20 flex flex-col gap-4 mb-6'>
-            <div className='flex items-center gap-3'>
-              <div className='w-10 h-10 bg-income/20 rounded-full flex items-center justify-center flex-shrink-0'>
-                <CheckCircle2 className='w-6 h-6 text-income' />
+          <div className='bg-income/10 p-5 md:p-6 rounded-[1.5rem] md:rounded-[2rem] border border-income/20 flex flex-col gap-4 mb-6 md:mb-8'>
+            <div className='flex items-center gap-3 md:gap-4'>
+              <div className='w-10 h-10 md:w-12 md:h-12 bg-income/20 rounded-full flex items-center justify-center flex-shrink-0'>
+                <CheckCircle2 className='w-6 h-6 md:w-7 md:h-7 text-income' />
               </div>
               <div>
-                <p className='text-sm font-bold text-income leading-tight'>
+                <p className='text-sm md:text-base font-bold text-income leading-tight'>
                   Target tercapai! 🎉
                 </p>
-                <p className='text-[10px] font-medium text-income/80 mt-0.5'>
+                <p className='text-[10px] md:text-xs font-medium text-income/80 mt-0.5 md:mt-1'>
                   Kamu berhasil mengumpulkan {formatRupiah(plan.currentAmount)}
                 </p>
               </div>
             </div>
             <button
               onClick={() => onConfirmAction(plan, 'complete')}
-              className='w-full py-3 bg-income text-surface font-bold rounded-xl shadow-sm hover:opacity-90 active:scale-95 transition-all text-sm flex items-center justify-center gap-2'
+              className='w-full py-3 md:py-4 bg-income text-surface font-bold rounded-xl md:rounded-2xl shadow-sm hover:opacity-90 active:scale-95 transition-all text-sm md:text-base flex items-center justify-center gap-2 border border-white/20'
             >
-              <Wallet className='w-4 h-4' /> Selesaikan & Cairkan
+              <Wallet className='w-4 h-4 md:w-5 md:h-5' /> Selesaikan & Cairkan
             </button>
           </div>
         )}
 
         {!stats.isCompleted && (
-          <div className='bg-warning/10 p-4 rounded-[1.5rem] border border-warning/20 flex items-center gap-4'>
-            <div className='w-10 h-10 bg-surface rounded-[1rem] flex items-center justify-center shadow-sm flex-shrink-0'>
-              <Flame className='w-5 h-5 text-warning' />
+          <div className='bg-warning/10 p-4 md:p-5 rounded-[1.5rem] md:rounded-[2rem] border border-warning/20 flex items-center gap-4'>
+            <div className='w-10 h-10 md:w-12 md:h-12 bg-surface rounded-[1rem] md:rounded-[1.2rem] flex items-center justify-center shadow-sm flex-shrink-0'>
+              <Flame className='w-5 h-5 md:w-6 md:h-6 text-warning' />
             </div>
             <div>
-              <p className='text-[10px] font-black text-warning uppercase tracking-widest mb-0.5'>
+              <p className='text-[10px] md:text-xs font-black text-warning uppercase tracking-widest mb-0.5'>
                 Daily Sacrifice
               </p>
-              <p className='text-xs font-bold text-warning/90 leading-snug'>
+              <p className='text-xs md:text-sm font-bold text-warning/90 leading-snug'>
                 {getSacrificeText(stats.daily)} ({formatRupiah(stats.daily)}
                 /hari).
               </p>
