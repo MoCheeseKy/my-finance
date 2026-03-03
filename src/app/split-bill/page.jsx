@@ -15,6 +15,7 @@ import {
   Camera,
   Loader2,
   CheckCircle2,
+  Minus,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -72,6 +73,7 @@ export default function FixedSplitBill() {
   const [isAddMemberModalOpen, setIsAddMemberModalOpen] = useState(false);
   const [newItemName, setNewItemName] = useState('');
   const [newItemPrice, setNewItemPrice] = useState('');
+  const [newItemQty, setNewItemQty] = useState(1); // STATE BARU: Quantity input manual
   const [newMemberName, setNewMemberName] = useState('');
 
   // -- AI SCAN STATES --
@@ -85,8 +87,9 @@ export default function FixedSplitBill() {
 
   // --- LOGIC CALCULATION ---
   const calculation = useMemo(() => {
+    // Subtotal: Harga Satuan * Qty
     const subtotal = items.reduce(
-      (sum, item) => sum + (Number(item.price) || 0),
+      (sum, item) => sum + (Number(item.price) || 0) * (Number(item.qty) || 1),
       0,
     );
     const taxAmount =
@@ -110,9 +113,9 @@ export default function FixedSplitBill() {
       subtotal > 0 ? (taxAmount + serviceAmount) / subtotal : 0;
 
     items.forEach((item) => {
-      const price = Number(item.price) || 0;
-      if (price > 0 && item.assignedTo.length > 0) {
-        const pricePerPerson = price / item.assignedTo.length;
+      const rowTotal = (Number(item.price) || 0) * (Number(item.qty) || 1);
+      if (rowTotal > 0 && item.assignedTo.length > 0) {
+        const pricePerPerson = rowTotal / item.assignedTo.length;
         const finalPricePerPerson =
           pricePerPerson + pricePerPerson * extraRatio;
         item.assignedTo.forEach((m) => {
@@ -134,11 +137,13 @@ export default function FixedSplitBill() {
         id: Date.now(),
         name: newItemName,
         price: Number(newItemPrice),
+        qty: Number(newItemQty), // Masukkan Qty
         assignedTo: [members[0]],
       },
     ]);
     setNewItemName('');
     setNewItemPrice('');
+    setNewItemQty(1);
     setIsAddMenuModalOpen(false);
   };
 
@@ -150,10 +155,8 @@ export default function FixedSplitBill() {
   };
 
   const handleRemoveMember = (nameToRemove) => {
-    if (nameToRemove === 'Aku') return; // Cegah hapus diri sendiri
-    // Hapus dari list squad
+    if (nameToRemove === 'Aku') return;
     setMembers(members.filter((m) => m !== nameToRemove));
-    // Hapus juga assignment dari item-item yang udah ada biar gak error kalkulasi
     setItems(
       items.map((item) => ({
         ...item,
@@ -177,6 +180,19 @@ export default function FixedSplitBill() {
     );
   };
 
+  // Logic Update Qty Langsung di List
+  const updateItemQty = (id, delta) => {
+    setItems(
+      items.map((item) => {
+        if (item.id === id) {
+          const newQty = Math.max(1, (item.qty || 1) + delta);
+          return { ...item, qty: newQty };
+        }
+        return item;
+      }),
+    );
+  };
+
   const copySummary = () => {
     const text = Object.entries(calculation.memberTotals)
       .map(
@@ -188,7 +204,6 @@ export default function FixedSplitBill() {
       `📌 *Tagihan Nongkrong*\n\n${text}\n\nTotal: Rp ${Math.round(calculation.grandTotal).toLocaleString('id-ID')}\n\nBayar ya ygy! ✨`,
     );
 
-    // Tampilkan feedback sementara di tombol
     const btn = document.getElementById('copy-btn');
     if (btn) {
       const originalHtml = btn.innerHTML;
@@ -216,6 +231,7 @@ export default function FixedSplitBill() {
         id: Date.now() + Math.random(),
         name: item.name,
         price: item.price,
+        qty: item.qty || 1, // Pastikan ada qty
         assignedTo: [members[0]],
       }));
 
@@ -239,6 +255,19 @@ export default function FixedSplitBill() {
       items: prev.items.map((item) =>
         item.id === id ? { ...item, [field]: value } : item,
       ),
+    }));
+  };
+
+  const updateScannedItemQty = (id, delta) => {
+    setScannedData((prev) => ({
+      ...prev,
+      items: prev.items.map((item) => {
+        if (item.id === id) {
+          const newQty = Math.max(1, (item.qty || 1) + delta);
+          return { ...item, qty: newQty };
+        }
+        return item;
+      }),
     }));
   };
 
@@ -266,7 +295,6 @@ export default function FixedSplitBill() {
           {label}
         </label>
 
-        {/* Animated Toggle */}
         <div className='flex bg-bg p-1 rounded-xl text-[10px] font-black border border-border relative'>
           {['percent', 'fix'].map((mode) => (
             <button
@@ -316,7 +344,6 @@ export default function FixedSplitBill() {
         animate='visible'
         className='relative z-10 p-6 max-w-md mx-auto'
       >
-        {/* HEADER */}
         <header className='flex items-center justify-between mb-8 pt-2'>
           <div className='flex items-center gap-4'>
             <motion.button
@@ -401,7 +428,6 @@ export default function FixedSplitBill() {
             </h3>
           </div>
 
-          {/* Action Row untuk tambah item (Gantiin FAB) */}
           <div className='grid grid-cols-2 gap-3 mb-4'>
             <input
               type='file'
@@ -443,49 +469,76 @@ export default function FixedSplitBill() {
                   </p>
                 </motion.div>
               ) : (
-                items.map((item) => (
-                  <motion.div
-                    layout
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, scale: 0.95 }}
-                    key={item.id}
-                    className='bg-surface/80 backdrop-blur-md p-4 rounded-[1.5rem] border border-border shadow-sm group transition-colors'
-                  >
-                    <div className='flex justify-between items-start mb-4'>
-                      <p className='font-bold text-text-primary text-[15px] truncate mr-2 leading-tight'>
-                        {item.name}
-                      </p>
-                      <div className='flex items-center gap-3'>
-                        <p className='font-black text-[15px] text-text-primary'>
-                          Rp{item.price.toLocaleString('id-ID')}
-                        </p>
-                        <button
-                          onClick={() =>
-                            setItems(items.filter((i) => i.id !== item.id))
-                          }
-                          className='text-expense/40 hover:text-expense transition-colors'
-                        >
-                          <Trash2 className='w-4 h-4' />
-                        </button>
+                items.map((item) => {
+                  const rowTotal = (item.price || 0) * (item.qty || 1);
+                  return (
+                    <motion.div
+                      layout
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.95 }}
+                      key={item.id}
+                      className='bg-surface/80 backdrop-blur-md p-4 rounded-[1.5rem] border border-border shadow-sm group transition-colors'
+                    >
+                      <div className='flex justify-between items-start mb-4 gap-2'>
+                        <div className='flex-1 min-w-0'>
+                          <p className='font-bold text-text-primary text-[15px] truncate leading-tight mb-1'>
+                            {item.name}
+                          </p>
+                          <p className='text-[10px] font-bold text-text-secondary tracking-widest'>
+                            @ Rp{item.price.toLocaleString('id-ID')}
+                          </p>
+                        </div>
+                        <div className='flex flex-col items-end gap-2'>
+                          <p className='font-black text-[15px] text-text-primary'>
+                            Rp{rowTotal.toLocaleString('id-ID')}
+                          </p>
+                          <div className='flex items-center gap-2'>
+                            <div className='flex items-center bg-bg rounded-lg border border-border'>
+                              <button
+                                onClick={() => updateItemQty(item.id, -1)}
+                                className='px-2.5 py-1 text-text-secondary hover:text-expense transition-colors'
+                              >
+                                <Minus className='w-3 h-3' />
+                              </button>
+                              <span className='text-xs font-black w-4 text-center'>
+                                {item.qty || 1}
+                              </span>
+                              <button
+                                onClick={() => updateItemQty(item.id, 1)}
+                                className='px-2.5 py-1 text-text-secondary hover:text-primary transition-colors'
+                              >
+                                <Plus className='w-3 h-3' />
+                              </button>
+                            </div>
+                            <button
+                              onClick={() =>
+                                setItems(items.filter((i) => i.id !== item.id))
+                              }
+                              className='text-expense/40 hover:text-expense transition-colors ml-1'
+                            >
+                              <Trash2 className='w-4 h-4' />
+                            </button>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div className='flex flex-wrap gap-1.5'>
-                      {members.map((m) => {
-                        const isSelected = item.assignedTo.includes(m);
-                        return (
-                          <button
-                            key={m}
-                            onClick={() => toggleAssignment(item.id, m)}
-                            className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-wider transition-all border ${isSelected ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-bg text-text-secondary border-border hover:border-text-secondary/50'}`}
-                          >
-                            {m}
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </motion.div>
-                ))
+                      <div className='flex flex-wrap gap-1.5 pt-1'>
+                        {members.map((m) => {
+                          const isSelected = item.assignedTo.includes(m);
+                          return (
+                            <button
+                              key={m}
+                              onClick={() => toggleAssignment(item.id, m)}
+                              className={`px-3 py-1.5 rounded-xl text-[10px] font-black tracking-wider transition-all border ${isSelected ? 'bg-primary/20 text-primary border-primary/30 shadow-sm' : 'bg-bg text-text-secondary border-border hover:border-text-secondary/50'}`}
+                            >
+                              {m}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </motion.div>
+                  );
+                })
               )}
             </AnimatePresence>
           </div>
@@ -496,7 +549,6 @@ export default function FixedSplitBill() {
           variants={itemVariants}
           className='bg-gradient-to-br from-surface to-surface/80 backdrop-blur-xl p-8 rounded-[2.5rem] border border-border shadow-[0_15px_40px_rgb(0,0,0,0.05)] relative overflow-hidden transition-colors'
         >
-          {/* Jagged top border effect (CSS trick) */}
           <div
             className='absolute top-0 left-0 w-full h-2 bg-transparent'
             style={{
@@ -554,7 +606,6 @@ export default function FixedSplitBill() {
             </span>
           </div>
 
-          {/* Decorative background blur */}
           <div className='absolute -bottom-10 -left-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl pointer-events-none'></div>
         </motion.section>
       </motion.div>
@@ -644,26 +695,45 @@ export default function FixedSplitBill() {
                         <Trash2 className='w-5 h-5' />
                       </button>
                     </div>
-                    <div className='bg-surface p-3 rounded-[1.2rem] border border-border focus-within:border-primary flex items-center'>
-                      <span className='text-text-secondary font-black mr-2 text-sm'>
-                        Rp
-                      </span>
-                      <div className='w-full'>
-                        <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
-                          Harga
-                        </label>
-                        <input
-                          type='number'
-                          value={item.price}
-                          onChange={(e) =>
-                            updateScannedItem(
-                              item.id,
-                              'price',
-                              Number(e.target.value),
-                            )
-                          }
-                          className='w-full bg-transparent text-sm font-black outline-none text-text-primary'
-                        />
+                    <div className='flex gap-3'>
+                      <div className='w-[40%] bg-surface p-3 rounded-[1.2rem] border border-border focus-within:border-primary flex items-center justify-between'>
+                        <button
+                          onClick={() => updateScannedItemQty(item.id, -1)}
+                          className='p-1 text-text-secondary hover:text-expense'
+                        >
+                          <Minus className='w-3 h-3' />
+                        </button>
+                        <span className='font-black text-sm text-text-primary'>
+                          {item.qty || 1}
+                        </span>
+                        <button
+                          onClick={() => updateScannedItemQty(item.id, 1)}
+                          className='p-1 text-text-secondary hover:text-primary'
+                        >
+                          <Plus className='w-3 h-3' />
+                        </button>
+                      </div>
+                      <div className='flex-1 bg-surface p-3 rounded-[1.2rem] border border-border focus-within:border-primary flex items-center'>
+                        <span className='text-text-secondary font-black mr-2 text-sm'>
+                          Rp
+                        </span>
+                        <div className='w-full'>
+                          <label className='text-[9px] font-black text-text-secondary uppercase block mb-1'>
+                            Harga Satuan
+                          </label>
+                          <input
+                            type='number'
+                            value={item.price}
+                            onChange={(e) =>
+                              updateScannedItem(
+                                item.id,
+                                'price',
+                                Number(e.target.value),
+                              )
+                            }
+                            className='w-full bg-transparent text-sm font-black outline-none text-text-primary'
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -762,21 +832,40 @@ export default function FixedSplitBill() {
                     onChange={(e) => setNewItemName(e.target.value)}
                   />
                 </div>
-                <div className='bg-bg/50 p-4 rounded-[1.5rem] border border-border focus-within:border-primary transition-colors flex items-center'>
-                  <span className='text-xl font-black text-text-secondary mr-3'>
-                    Rp
-                  </span>
-                  <div className='w-full'>
-                    <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
-                      Harga
-                    </label>
-                    <input
-                      type='number'
-                      placeholder='0'
-                      className='w-full bg-transparent font-black text-lg outline-none text-text-primary'
-                      value={newItemPrice}
-                      onChange={(e) => setNewItemPrice(e.target.value)}
-                    />
+                <div className='flex gap-3'>
+                  <div className='bg-bg/50 p-4 rounded-[1.5rem] border border-border focus-within:border-primary transition-colors flex items-center justify-between w-1/3'>
+                    <button
+                      onClick={() => setNewItemQty(Math.max(1, newItemQty - 1))}
+                      className='text-text-secondary hover:text-expense'
+                    >
+                      <Minus className='w-4 h-4' />
+                    </button>
+                    <span className='font-black text-lg text-text-primary'>
+                      {newItemQty}
+                    </span>
+                    <button
+                      onClick={() => setNewItemQty(newItemQty + 1)}
+                      className='text-text-secondary hover:text-primary'
+                    >
+                      <Plus className='w-4 h-4' />
+                    </button>
+                  </div>
+                  <div className='flex-1 bg-bg/50 p-4 rounded-[1.5rem] border border-border focus-within:border-primary transition-colors flex items-center'>
+                    <span className='text-xl font-black text-text-secondary mr-3'>
+                      Rp
+                    </span>
+                    <div className='w-full'>
+                      <label className='text-[10px] font-black text-text-secondary uppercase tracking-widest block mb-1'>
+                        Harga Satuan
+                      </label>
+                      <input
+                        type='number'
+                        placeholder='0'
+                        className='w-full bg-transparent font-black text-lg outline-none text-text-primary'
+                        value={newItemPrice}
+                        onChange={(e) => setNewItemPrice(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

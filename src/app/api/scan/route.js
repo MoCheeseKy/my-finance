@@ -26,17 +26,18 @@ export async function POST(req) {
     const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const prompt = `
-      Kamu adalah asisten keuangan pintar. Ekstrak daftar pesanan (nama dan harga), tax, dan service dari struk ini.
+      Kamu adalah asisten keuangan pintar. Ekstrak daftar pesanan (nama, harga satuan, dan jumlah/quantity), tax, dan service dari struk ini.
       
       ATURAN WAJIB:
       1. Keluarkan HANYA dalam format JSON murni.
       2. Harga, tax, dan service harus berupa ANGKA BULAT (integer), hilangkan simbol mata uang dan titik/koma.
-      3. Jika tax/service persen (%), ubah jadi nominal. Jika tidak ada, isi 0.
+      3. "price" adalah HARGA SATUAN (unit price). "qty" adalah jumlah pesanan (wajib angka, default 1).
+      4. Jika tax/service berupa persen (%), ubah jadi nominal angka. Jika tidak ada, isi 0.
       
       Format JSON HANYA seperti ini:
       {
         "items": [
-          { "name": "Ayam Bakar", "price": 25000 }
+          { "name": "Ayam Bakar", "price": 25000, "qty": 2 }
         ],
         "tax": 2500,
         "service": 0
@@ -73,7 +74,6 @@ export async function POST(req) {
     }
   } catch (error) {
     console.error('AI Scan Error:', error.message);
-    // Sekarang error aslinya bakal dikirim ke frontend
     return NextResponse.json(
       { error: error.message || 'Gagal menghubungi AI.' },
       { status: 500 },
